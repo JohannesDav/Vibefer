@@ -186,4 +186,16 @@ inline packed_parameters admit(uint32_t base, unsigned length, unsigned pack, un
     }
     return out;
 }
+// Keep the profile's ratio when both work at this field count. Only tighten
+// a ratio-three profile when doing so avoids moving to another prime.
+inline packed_parameters admit_profile(uint32_t base, unsigned length, unsigned pack, unsigned ratio,
+                                       const std::vector<uint32_t> &primes) {
+    try {
+        return admit(base, length, pack, ratio, primes);
+    } catch (const std::invalid_argument &) {
+        if (ratio != 3)
+            throw;
+        return admit(base, length, pack, 2, primes);
+    }
+}
 } // namespace cuda_gfn

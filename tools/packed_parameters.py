@@ -233,6 +233,29 @@ def parameters(
     )
 
 
+def admit_profile(base, fields, bits=32, **kwargs):
+    """Prefer the profile's ratio, then try 2B before adding a prime."""
+    ratio = kwargs.get("digit_ratio")
+    if ratio is None:
+        ratio = 3 if fields <= 16 else (4 if bits == 32 else 10)
+    primes = kwargs.get("primes")
+    require(base + 2 < min((ps if primes is None else primes)[:fields]),
+            "packed encoder base range")
+
+    def checked(digit_ratio):
+        a = parameters(base, fields, bits=bits, **dict(kwargs, digit_ratio=digit_ratio))
+        require(2 * a["e"] * a["B"] + a["e"] + a["Tmax"] < 3 * a["B"],
+                "ordinary digit bridge bound")
+        return a
+
+    try:
+        return checked(ratio)
+    except UnsupportedPackedParameters:
+        if ratio != 3:
+            raise
+        return checked(2)
+
+
 def c_array(values):
     if isinstance(values, list):
         return "{" + ",".join(c_array(x) for x in values) + "}"
@@ -418,7 +441,7 @@ def program(
     require(pack in (1, 2, 4, 8, 16, 32, 64), "unsupported packed radix width")
     pool, roots = field_pool(fields, N, prime_bits)
     require(base + 2 < min(pool), "packed encoder base range")
-    a = parameters(
+    a = admit_profile(
         base,
         fields,
         bits,

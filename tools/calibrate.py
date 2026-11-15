@@ -55,7 +55,7 @@ def plans(m, src, n, b):
         for fields in range(2, 33):
             for ratio in (2, 3, 4):
                 try:
-                    p = m.parameters(
+                    p = m.admit_profile(
                         b,
                         fields,
                         length=N,
@@ -66,7 +66,7 @@ def plans(m, src, n, b):
                     )
                     if 2 * p["e"] * p["B"] + p["e"] + p["Tmax"] >= 3 * p["B"]:
                         continue
-                    accepted = (fields, ratio)
+                    accepted = (fields, p["limit"] // p["B"])
                     break
                 except m.UnsupportedPackedParameters:
                     pass
