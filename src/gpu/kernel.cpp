@@ -121,7 +121,7 @@ std::string source(uint32_t base, const kernel_plan &plan, unsigned fields, cons
     define("BASE", base);
     define("BITS", 32);
     define("GROUPS", a.groups);
-    define("DIGIT_RATIO", plan.ratio);
+    define("DIGIT_RATIO", a.ratio);
     define("CODEC_LIMBS", limbs);
     for (unsigned j = 0; j < fields; ++j)
         header << "#define PG_PRIME" << j << " " << p.primes[j] << "\n#define PG_GENERATOR" << j << " "
@@ -260,7 +260,7 @@ generated_kernel generate_kernel(uint32_t base, unsigned exponent, const kernel_
         std::vector<uint32_t> primes(p.primes, p.primes + fields);
         packed_parameters a;
         try {
-            a = admit(base, plan.length, plan.pack, plan.ratio, primes);
+            a = admit_profile(base, plan.length, plan.pack, plan.ratio, primes);
         } catch (const std::invalid_argument &) {
             if (plan.fields)
                 throw;
