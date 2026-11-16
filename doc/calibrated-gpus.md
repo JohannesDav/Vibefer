@@ -82,6 +82,7 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | Quadro RTX 8000 | 48 GB | Turing |
 | Quadro RTX 6000 | 24 GB | Turing |
 | Quadro RTX 5000 | 16 GB | Turing |
+| NVIDIA T600 | 4 GB | Turing |
 | Quadro P4000 | 8 GB | Pascal |
 | NVIDIA H200 | 141 GB | Hopper |
 | NVIDIA H100 NVL | 96 GB | Hopper |
