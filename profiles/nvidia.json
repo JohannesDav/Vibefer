@@ -11,6 +11,83 @@
   },
   "devices": [
     {
+      "name": "NVIDIA T600",
+      "architecture": "turing",
+      "memory_gib": 4,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 16384,
+          "outer": 16,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
       "name": "NVIDIA GeForce GTX 1080 Ti",
       "architecture": "pascal",
       "memory_gib": 11,
