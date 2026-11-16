@@ -138,6 +138,27 @@ typedef cl_long		int64;
 
 #include "primes.h"
 
+struct crt_parameters {
+    int64_t qpair, rpair, qthird, rthird;
+    explicit crt_parameters(uint32_t b) {
+        // Reconstruct C = k*(p2*p3) + t*p3 + r3, and divide using bounded
+        // signed64 residuals. Check the entire supported coefficient interval.
+        const int64_t pair = int64_t(P2S) * P3S;
+        qpair = (pair + b/2) / b; rpair = pair - qpair*b;
+        qthird = (int64_t(P3S) + b/2) / b; rthird = int64_t(P3S) - qthird*b;
+        using wide = small_prime_bounds::wide;
+        const wide coefficient = small_prime_bounds::coefficient_bound(b);
+        const wide kmax = small_prime_bounds::ceil_div(coefficient, wide(pair)) + 2;
+        const wide tmax = uint64_t(P2S)/2 + 1, rmax = uint64_t(P3S)-1;
+        const wide carry = small_prime_bounds::carry_bound(b);
+        auto magnitude = [](int64_t x) { return uint64_t(x < 0 ? -x : x); };
+        if (2*(kmax*magnitude(rpair) + tmax*magnitude(rthird) + rmax) + carry >= wide(b)*(wide(1)<<29)
+            || 2*(kmax*uint64_t(qpair) + tmax*uint64_t(qthird)) + (wide(1)<<29) >= (wide(1)<<63)
+            || coefficient >= wide(P1S/2-4)*wide(pair))
+            throw std::runtime_error("Three-prime CRT division range check failed");
+    }
+};
+
 inline int64_t decode_normalized_digit(uint32_t first, uint32_t second)
 {
     // The host admission requires |digit| < the smallest of all three primes.
@@ -220,7 +241,6 @@ public:
 #define CREATE_TRANSFORM_KERNEL(name) _##name = createTransformKernel(#name);
 #define CREATE_TRANSFORM_KERNELP(name) _##name = createTransformKernel(#name, false);
 #define CREATE_MUL_KERNEL(name) _##name = createMulKernel(#name);
-#define CREATE_NORMALIZE_KERNEL(name, b, b_inv, b_s) _##name = createNormalizeKernel(#name, b, b_inv, b_s);
 #define CREATE_SETCOPY_KERNEL(name) _##name = createSetCopyKernel(#name);
 #define CREATE_COPYP_KERNEL(name) _##name = createCopypKernel(#name);
 
@@ -338,7 +358,8 @@ private:
 		return kernel;
 	}
 
-	cl_kernel createNormalizeKernel(const char * const kernelName, const uint32 b, const uint32 b_inv, const int32 b_s)
+	cl_kernel createNormalizeKernel(const char * const kernelName, const uint32 b, const uint32 b_inv, const int32 b_s,
+                                    const crt_parameters *crt = nullptr)
 	{
 		cl_kernel kernel = _createKernel(kernelName);
 		_setKernelArg(kernel, 0, sizeof(cl_mem), &_z);
@@ -346,6 +367,11 @@ private:
 		_setKernelArg(kernel, 2, sizeof(uint32), &b);
 		_setKernelArg(kernel, 3, sizeof(uint32), &b_inv);
 		_setKernelArg(kernel, 4, sizeof(int32), &b_s);
+        if (crt) {
+            const cl_long2 pair = {{crt->qpair, crt->rpair}}, third = {{crt->qthird, crt->rthird}};
+            _setKernelArg(kernel, 6, sizeof(pair), &pair);
+            _setKernelArg(kernel, 7, sizeof(third), &third);
+        }
 		return kernel;
 	}
 
@@ -374,7 +400,7 @@ private:
 	}
 
 public:
-	void createKernels(const uint32_t b)
+	void createKernels(const uint32_t b, const crt_parameters &crt)
 	{
 #if defined(ocl_debug)
 		std::ostringstream ss; ss << "Create ocl kernels." << std::endl;
@@ -448,10 +474,10 @@ public:
 		const uint32 b_ui = static_cast<uint32>(b);
 		const int32 b_s = static_cast<int32>(31 - __builtin_clz(b) - 1);
 		const uint32 b_inv = static_cast<uint32>((static_cast<uint64_t>(1) << (b_s + 32)) / b);
-		CREATE_NORMALIZE_KERNEL(normalize1dup0, b_ui, b_inv, b_s);
-        CREATE_NORMALIZE_KERNEL(normalize1dup1, b_ui, b_inv, b_s);
-		CREATE_NORMALIZE_KERNEL(normalize2, b_ui, b_inv, b_s);
-		CREATE_NORMALIZE_KERNEL(mulscalar, b_ui, b_inv, b_s);
+		_normalize1dup0 = createNormalizeKernel("normalize1dup0", b_ui, b_inv, b_s, &crt);
+        _normalize1dup1 = createNormalizeKernel("normalize1dup1", b_ui, b_inv, b_s, &crt);
+		_normalize2 = createNormalizeKernel("normalize2", b_ui, b_inv, b_s);
+		_mulscalar = createNormalizeKernel("mulscalar", b_ui, b_inv, b_s);
 
 		CREATE_SETCOPY_KERNEL(set);
 		CREATE_SETCOPY_KERNEL(copy);
@@ -1001,28 +1027,10 @@ private:
 	std::unique_ptr<engines<RNS_SIZE, is32>> _pEngine;
 
 public:
-	transformGPUs(const uint32_t b, const uint32_t n, const bool isBoinc, const size_t device, const size_t num_regs,
-				 const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose,
-                     unsigned root_bits = 0, const std::string &embedded_kernel = {})
-		: transform(size_t(1) << n, n, b, (RNS_SIZE == 2) ? EKind::NTT2 : EKind::NTT3),
-        root_bytes_(root_bits ? root_bits/8 : configured_root_word_bytes()),
-        _mem_size(RNS_SIZE * (size_t(1) << n) * ((num_regs + 1) * sizeof(ZP) + root_word_bytes()) + (size_t(1) << n) / 4 * sizeof(int64)),
-        _cache_size(RNS_SIZE * (size_t(1) << n) * root_word_bytes()),
-		_num_regs(num_regs), _z(new ZP[RNS_SIZE * (size_t(1) << n) * num_regs])
-	{
-		if (
-            (n < 16 || n > 22) ||
-            !small_prime_bounds::supported(b))
-            throw std::runtime_error("Outside the bounded small-prime arithmetic range");
-
-		const size_t size = getSize();
-
-		const bool is_boinc_platform = isBoinc && (boinc_device_id != 0) && (boinc_platform_id != 0);
-		const platform eng_platform = is_boinc_platform ? platform(boinc_platform_id, boinc_device_id) : platform();
-
-		_pEngine.reset(new engines<RNS_SIZE, is32>(eng_platform, is_boinc_platform ? 0 : device, static_cast<int>(n), isBoinc, num_regs, verbose, unsigned(root_bytes_*8)));
-
-		std::ostringstream src; src << "#define GFN_ROOT_BITS " << (root_word_bytes()*8) << "\n"; src << "#define GFN_PAIRED_DIGITS " << (uint64_t(b)+2 >= P1S/2) << "\n"; src << "#define WARP_TAIL_STAGES 1\n"; src << "#define QUARTIC_LEAF 1\n"; src << "#define LAZY 1\n"; src << "#define SHOUP 3\n";
+    static std::string kernel_source(uint32_t n, unsigned root_bits, size_t norm_workgroup,
+                                     size_t max_workgroup, const std::string &embedded_kernel) {
+        const size_t size = size_t(1) << n;
+		std::ostringstream src; src << "#define GFN_ROOT_BITS " << (root_bits) << "\n"; src << "#define WARP_TAIL_STAGES 1\n"; src << "#define QUARTIC_LEAF 1\n"; src << "#define LAZY 1\n"; src << "#define SHOUP 3\n";
 
 
 		src << "#define N_SZ\t" << (1u << n) << "u" << std::endl;
@@ -1093,9 +1101,9 @@ public:
 		src << "#define ALL_FUNC\t" << 1 << std::endl;
 #endif
 
-		src << "#define NORM_WG_SZ\t" << _pEngine->getNormWGsize() << std::endl;
+		src << "#define NORM_WG_SZ\t" << norm_workgroup << std::endl;
 
-		src << "#define MAX_WG_SZ\t" << _pEngine->getMaxWorkGroupSize() << std::endl << std::endl;
+		src << "#define MAX_WG_SZ\t" << max_workgroup << std::endl << std::endl;
 
         src << "#define GFN_CRT_SHOUP 1\n";
         // Shoup reciprocals belong to the selected prime set, not the transform size.
@@ -1114,26 +1122,6 @@ public:
             src << "#define " << names[i] << "_Q " << ((uint64_t(value)<<32)/moduli[i]) << "u\n";
         }
 
-        const int shift=31-__builtin_clz(b)-1;
-        const uint32_t inverse=uint32_t((uint64_t(1)<<(shift+32))/b);
-        src << "#define GFN_FIXED_B " << b << "u\n#define GFN_FIXED_INV " << inverse << "u\n#define GFN_FIXED_SHIFT " << shift << "\n";
-        // Reconstruct C = k*(p2*p3) + t*p3 + r3, and divide using bounded
-        // signed64 residuals. Check the entire supported coefficient interval.
-        const int64_t pair = int64_t(P2S) * P3S;
-        const int64_t qpair = (pair + b/2) / b, rpair = pair - qpair*b;
-        const int64_t qthird = (int64_t(P3S) + b/2) / b, rthird = int64_t(P3S) - qthird*b;
-        using wide = small_prime_bounds::wide;
-        const wide coefficient = small_prime_bounds::coefficient_bound(b);
-        const wide kmax = small_prime_bounds::ceil_div(coefficient, wide(pair)) + 2;
-        const wide tmax = uint64_t(P2S)/2 + 1, rmax = uint64_t(P3S)-1;
-        const wide carry = small_prime_bounds::carry_bound(b);
-        auto magnitude = [](int64_t x) { return uint64_t(x < 0 ? -x : x); };
-        if (2*(kmax*magnitude(rpair) + tmax*magnitude(rthird) + rmax) + carry >= wide(b)*(wide(1)<<29)
-            || 2*(kmax*uint64_t(qpair) + tmax*uint64_t(qthird)) + (wide(1)<<29) >= (wide(1)<<63)
-            || coefficient >= wide(P1S/2-4)*wide(pair))
-            throw std::runtime_error("Three-prime CRT division range check failed");
-        src << "#define CRT_QPAIR " << qpair << "l\n#define CRT_RPAIR " << rpair << "l\n";
-        src << "#define CRT_QTHIRD " << qthird << "l\n#define CRT_RTHIRD " << rthird << "l\n";
         if (!embedded_kernel.empty()) src << embedded_kernel;
         else {
             const char *path = std::getenv("GENEFER_KERNEL");
@@ -1142,9 +1130,35 @@ public:
             if (!kernel) throw std::runtime_error("Cannot open the three-prime kernel source");
             src << std::string(std::istreambuf_iterator<char>(kernel), {});
         }
-        _pEngine->loadProgram(src.str());
+        return src.str();
+    }
+
+	transformGPUs(const uint32_t b, const uint32_t n, const bool isBoinc, const size_t device, const size_t num_regs,
+				 const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose,
+                     unsigned root_bits = 0, const std::string &embedded_kernel = {})
+		: transform(size_t(1) << n, n, b, (RNS_SIZE == 2) ? EKind::NTT2 : EKind::NTT3),
+        root_bytes_(root_bits ? root_bits/8 : configured_root_word_bytes()),
+        _mem_size(RNS_SIZE * (size_t(1) << n) * ((num_regs + 1) * sizeof(ZP) + root_word_bytes()) + (size_t(1) << n) / 4 * sizeof(int64)),
+        _cache_size(RNS_SIZE * (size_t(1) << n) * root_word_bytes()),
+		_num_regs(num_regs), _z(new ZP[RNS_SIZE * (size_t(1) << n) * num_regs])
+	{
+		if (
+            (n < 16 || n > 22) ||
+            !small_prime_bounds::supported(b))
+            throw std::runtime_error("Outside the bounded small-prime arithmetic range");
+
+		const size_t size = getSize();
+
+		const bool is_boinc_platform = isBoinc && (boinc_device_id != 0) && (boinc_platform_id != 0);
+		const platform eng_platform = is_boinc_platform ? platform(boinc_platform_id, boinc_device_id) : platform();
+
+		_pEngine.reset(new engines<RNS_SIZE, is32>(eng_platform, is_boinc_platform ? 0 : device, static_cast<int>(n), isBoinc, num_regs, verbose, unsigned(root_bytes_*8)));
+
+        const crt_parameters crt(b);
+        _pEngine->loadProgram(kernel_source(n, unsigned(root_bytes_*8), _pEngine->getNormWGsize(),
+                                            _pEngine->getMaxWorkGroupSize(), embedded_kernel));
 		_pEngine->allocMemory();
-		_pEngine->createKernels(b);
+		_pEngine->createKernels(b, crt);
 
 		std::unique_ptr<ZP1[]> wr1(new ZP1[size]{});
 		std::unique_ptr<ZP2[]> wr2(new ZP2[size]{});
