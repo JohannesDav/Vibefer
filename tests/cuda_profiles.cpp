@@ -25,9 +25,9 @@ int main() {
         known.memory_bytes = 8 * gib;
         choices = profiles_for(known, 19);
         expect(choices.front()->memory_gib == 8, "8GB device must use its own tested settings");
-        known.name = "NVIDIA GeForce GTX 1080 Ti";
-        known.memory_bytes = 11 * gib;
-        known.arch = architecture::nvidia_pascal;
+        known.name = "NVIDIA GeForce RTX 3060";
+        known.memory_bytes = 12 * gib;
+        known.arch = architecture::ampere;
         choices = profiles_for(known, 16, 620000000);
         expect(choices.front()->kind == implementation::three_prime,
                "Frontier calibration must retain the selected three-prime profile");

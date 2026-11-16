@@ -93,8 +93,14 @@
       "memory_gib": 11,
       "projects": {
         "16": {
-          "implementation": "three-prime",
-          "root_bits": 32
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
         },
         "17": {
           "implementation": "three-prime",
@@ -508,8 +514,14 @@
       "memory_gib": 8,
       "projects": {
         "16": {
-          "implementation": "three-prime",
-          "root_bits": 64
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
         },
         "17": {
           "implementation": "packed",
@@ -1149,8 +1161,16 @@
           "shared_memory_preference": 50
         },
         "19": {
-          "implementation": "three-prime",
-          "root_bits": 32
+          "chunk": 8,
+          "digit_ratio": 3,
+          "implementation": "packed",
+          "inline_converter": false,
+          "inner_blocks": 1,
+          "length": 65536,
+          "matrix_mad": true,
+          "outer": 64,
+          "root_bits": 32,
+          "shared_memory_preference": 50
         },
         "20": {
           "implementation": "packed",
@@ -3005,16 +3025,40 @@
           "root_bits": 32
         },
         "18": {
-          "implementation": "three-prime",
-          "root_bits": 32
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 2,
+          "matrix_mad": true,
+          "inline_converter": false,
+          "shared_memory_preference": 50
         },
         "19": {
-          "implementation": "three-prime",
-          "root_bits": 32
+          "chunk": 8,
+          "digit_ratio": 3,
+          "implementation": "packed",
+          "inline_converter": false,
+          "inner_blocks": 1,
+          "length": 65536,
+          "matrix_mad": true,
+          "outer": 64,
+          "root_bits": 32,
+          "shared_memory_preference": 50
         },
         "20": {
-          "implementation": "three-prime",
-          "root_bits": 32
+          "chunk": 4,
+          "digit_ratio": 2,
+          "implementation": "packed",
+          "inline_converter": false,
+          "inner_blocks": 1,
+          "length": 131072,
+          "matrix_mad": true,
+          "outer": 64,
+          "root_bits": 64,
+          "shared_memory_preference": 50
         },
         "21": {
           "implementation": "packed",
@@ -3931,8 +3975,16 @@
       "memory_gib": 8,
       "projects": {
         "16": {
-          "implementation": "three-prime",
-          "root_bits": 32
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true,
+          "inline_converter": false,
+          "shared_memory_preference": 50
         },
         "18": {
           "implementation": "packed",
@@ -4259,8 +4311,16 @@
       "memory_gib": 24,
       "projects": {
         "16": {
-          "implementation": "three-prime",
-          "root_bits": 32
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true,
+          "inline_converter": false,
+          "shared_memory_preference": 50
         },
         "18": {
           "implementation": "packed",
