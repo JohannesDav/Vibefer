@@ -717,12 +717,26 @@
       "memory_gib": 16,
       "projects": {
         "16": {
-          "implementation": "three-prime",
+          "chunk": 4,
+          "digit_ratio": 3,
+          "implementation": "packed",
+          "inline_converter": false,
+          "inner_blocks": 1,
+          "length": 32768,
+          "matrix_mad": false,
+          "outer": 64,
           "root_bits": 64
         },
         "17": {
-          "implementation": "three-prime",
-          "root_bits": 64
+          "chunk": 8,
+          "digit_ratio": 3,
+          "implementation": "packed",
+          "inline_converter": false,
+          "inner_blocks": 1,
+          "length": 32768,
+          "matrix_mad": false,
+          "outer": 64,
+          "root_bits": 32
         },
         "18": {
           "implementation": "packed",

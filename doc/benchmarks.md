@@ -10,11 +10,13 @@ In every comparison, the two versions wrote identical proof files, and each proo
 
 Each cell shows the time in seconds with the original version → with this fork (time saved). A dash means we skipped that comparison because of the time and cost involved, not because the combination is unsupported.
 
+† Shared kernels are warmed on a different base before timing, so one-time compilation is excluded while per-candidate compilation is included.
+
 | GPU | GFN-16 | GFN-17 | GFN-18 | GFN-19 |
 |---|---:|---:|---:|---:|
 | RTX 2080 Ti | 40.5 → 33.1 (18.3%) | 121.1 → 93.6 (22.7%) | 375.9 → 253.9 (32.5%) | 1501.3 → 842.3 (43.9%) |
 | RTX 3090 | 40.3 → 30.7 (24.0%) | 107.1 → 78.7 (26.6%) | 298.6 → 208.2 (30.3%) | 985.3 → 580.8 (41.1%) |
-| RTX 4060 Ti | 38.8 → 32.4 (16.6%) | 113.7 → 89.9 (20.9%) | 353.6 → 232.4 (34.3%) | 1209.6 → 720.1 (40.5%) |
+| RTX 4060 Ti | 39.7 → 33.4 (15.9%)† | 125.5 → 95.0 (24.3%)† | 353.6 → 232.4 (34.3%) | 1209.6 → 720.1 (40.5%) |
 | RTX 5070 | 45.1 → 35.5 (21.3%) | 86.8 → 69.0 (20.4%) | 240.7 → 166.9 (30.7%) | 834.8 → 500.1 (40.1%) |
 | RTX 5090 | 34.0 → 29.7 (12.5%) | 60.9 → 52.9 (13.2%) | 137.9 → 110.8 (19.6%) | 383.6 → 261.1 (32.0%) |
 
@@ -36,6 +38,6 @@ The OpenCL and CUDA measurements used different rented machines, drivers and pow
 |---|---:|---:|---:|---:|---:|---:|---:|
 | RTX 2080 Ti | 52% | 90% | 100% | 95% | — | — | — |
 | RTX 3090 | 61% | 73% | 75% | 84% | 97% | — | — |
-| RTX 4060 Ti | 50% | 65% | 87% | 96% | 96% | — | — |
+| RTX 4060 Ti | 47% | 77% | 87% | 96% | 96% | — | — |
 | RTX 5070 | 48% | 76% | 90% | 98% | 99% | — | — |
 | RTX 5090 | 21% | 24% | 43% | 91% | 91% | 92% | 89% |
