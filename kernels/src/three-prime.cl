@@ -2559,17 +2559,11 @@ INLINE int_64 garner2(const uint_32 r1, const uint_32 r2)
 	return (int_64)(n - (b ? P1P2 : 0));
 }
 
-#if GFN_PAIRED_DIGITS
-// For |d| < min(P1,P2), positive digits have equal residues, while negative
-// digits differ by P1-P2. This concerns normalized digits, not convolution CRT.
-#define GFN_SECOND(x) x
-INLINE int_64 normalized_digit(const uint_32 r1, const uint_32 r2) {
-    return (int_64)r1 - (r1 == r2 ? 0l : (int_64)P1);
+// The base decides whether the second residue is needed for signed decoding.
+INLINE int_64 normalized_digit(const uint_32 r1, const uint_32 r2, const bool paired) {
+    const bool negative = paired ? r1 != r2 : r1 >= P1/2;
+    return (int_64)r1 - (negative ? (int_64)P1 : 0l);
 }
-#else
-#define GFN_SECOND(x) 0u
-INLINE int_64 normalized_digit(const uint_32 r1, const uint_32 unused) { return get_int(r1,P1); }
-#endif
 
 #if GFN_CRT_SHOUP
 #define GFN_CRT_SELECT(a,b) a
@@ -2595,10 +2589,10 @@ INLINE int3 crt_digits(uint r1, uint r2, uint r3) {
     return (int3)(k, t, c);
 }
 INLINE int crt_divide(uint r1, uint r2, uint r3, const uint b, const uint inverse, const int shift,
-                      const bool doubled, __private long *carry) {
+                      const bool doubled, __private long *carry, const long4 crt) {
     const int3 v = crt_digits(r1, r2, r3);
-    long quotient = (long)v.s0 * CRT_QPAIR + (long)v.s1 * CRT_QTHIRD;
-    long residual = (long)v.s0 * CRT_RPAIR + (long)v.s1 * CRT_RTHIRD + v.s2;
+    long quotient = (long)v.s0 * crt.s0 + (long)v.s1 * crt.s2;
+    long residual = (long)v.s0 * crt.s1 + (long)v.s1 * crt.s3 + v.s2;
     if (doubled) {
         quotient += quotient;
         residual += residual;
@@ -2652,7 +2646,7 @@ INLINE void write_rns(__global uint4_32 * restrict const zi, const int4_32 r)
 
 INLINE int4_32 normalize_1(__global uint4_32 * restrict const zi, __global int_64 * restrict const c,
 	__local int_64 * const cl, const sz_t gid, const sz_t lid,
-	const uint_32 b, const uint_32 b_inv, const int b_s, const bool dup)
+	const uint_32 b, const uint_32 b_inv, const int b_s, const bool dup, const long4 crt)
 {
 	const uint4_32 u1 = mulmod4(zi[0 * N_SZ / 4], NORM1, PQ1), u2 = mulmod4(zi[1 * N_SZ / 4], NORM2, PQ2);
 	int4_32 r;
@@ -2672,10 +2666,10 @@ INLINE int4_32 normalize_1(__global uint4_32 * restrict const zi, __global int_6
 	const uint4_32 u3 = mulmod4(zi[2 * N_SZ / 4], NORM3, PQ3);
 
  int_64 f=0;
- r.s0=crt_divide(u1.s0,u2.s0,u3.s0,b,b_inv,b_s,dup,&f);
- r.s1=crt_divide(u1.s1,u2.s1,u3.s1,b,b_inv,b_s,dup,&f);
- r.s2=crt_divide(u1.s2,u2.s2,u3.s2,b,b_inv,b_s,dup,&f);
- r.s3=crt_divide(u1.s3,u2.s3,u3.s3,b,b_inv,b_s,dup,&f);
+ r.s0=crt_divide(u1.s0,u2.s0,u3.s0,b,b_inv,b_s,dup,&f,crt);
+ r.s1=crt_divide(u1.s1,u2.s1,u3.s1,b,b_inv,b_s,dup,&f,crt);
+ r.s2=crt_divide(u1.s2,u2.s2,u3.s2,b,b_inv,b_s,dup,&f,crt);
+ r.s3=crt_divide(u1.s3,u2.s3,u3.s3,b,b_inv,b_s,dup,&f,crt);
 
 #endif
 
@@ -2705,19 +2699,15 @@ INLINE void normalize_2(__global uint4_32 * restrict const zi, __local int_64 * 
 
 __kernel __attribute__((reqd_work_group_size(NORM_WG_SZ, 1, 1)))
 void normalize1dup0(__global uint4_32 * restrict const z, __global int_64 * restrict const c,
-	const uint_32 b_param, const uint_32 b_inv_param, const int b_s_param, const int_32 dup_param)
+	const uint_32 b, const uint_32 b_inv, const int b_s, const int_32 dup_param,
+    const long2 pair, const long2 third)
 {
-#if defined(GFN_FIXED_B)
- const uint_32 b=GFN_FIXED_B,b_inv=GFN_FIXED_INV;const int b_s=GFN_FIXED_SHIFT;
-#else
- const uint_32 b=b_param,b_inv=b_inv_param;const int b_s=b_s_param;
-#endif
 
 	const sz_t gid = (sz_t)get_global_id(0), lid = gid % NORM_WG_SZ;
 	__global uint4_32 * restrict const zi = &z[gid];
 	__local int_64 cl[NORM_WG_SZ];
 
-	const int4_32 r = normalize_1(zi, c, cl, gid, lid, b, b_inv, b_s, 0);
+	const int4_32 r = normalize_1(zi, c, cl, gid, lid, b, b_inv, b_s, 0, (long4)(pair,third));
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -2726,19 +2716,15 @@ void normalize1dup0(__global uint4_32 * restrict const z, __global int_64 * rest
 
 __kernel __attribute__((reqd_work_group_size(NORM_WG_SZ, 1, 1)))
 void normalize1dup1(__global uint4_32 * restrict const z, __global int_64 * restrict const c,
-	const uint_32 b_param, const uint_32 b_inv_param, const int b_s_param, const int_32 dup_param)
+	const uint_32 b, const uint_32 b_inv, const int b_s, const int_32 dup_param,
+    const long2 pair, const long2 third)
 {
-#if defined(GFN_FIXED_B)
- const uint_32 b=GFN_FIXED_B,b_inv=GFN_FIXED_INV;const int b_s=GFN_FIXED_SHIFT;
-#else
- const uint_32 b=b_param,b_inv=b_inv_param;const int b_s=b_s_param;
-#endif
 
 	const sz_t gid = (sz_t)get_global_id(0), lid = gid % NORM_WG_SZ;
 	__global uint4_32 * restrict const zi = &z[gid];
 	__local int_64 cl[NORM_WG_SZ];
 
-	const int4_32 r = normalize_1(zi, c, cl, gid, lid, b, b_inv, b_s, 1);
+	const int4_32 r = normalize_1(zi, c, cl, gid, lid, b, b_inv, b_s, 1, (long4)(pair,third));
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
@@ -2748,30 +2734,24 @@ void normalize1dup1(__global uint4_32 * restrict const z, __global int_64 * rest
 
 __kernel
 void normalize2(__global uint4_32 * restrict const z, __global const int_64 * restrict const c, 
-	const uint_32 b_param, const uint_32 b_inv_param, const int b_s_param)
+	const uint_32 b, const uint_32 b_inv, const int b_s)
 {
-#if defined(GFN_FIXED_B)
- const uint_32 b=GFN_FIXED_B,b_inv=GFN_FIXED_INV;const int b_s=GFN_FIXED_SHIFT;
-#else
- const uint_32 b=b_param,b_inv=b_inv_param;const int b_s=b_s_param;
-#endif
 
 	const sz_t gid = (sz_t)get_global_id(0);
 	__global uint4_32 * restrict const zi = &z[NORM_WG_SZ * gid];
 
 	const uint4_32 u1 = zi[0 * N_SZ / 4];
-#if GFN_PAIRED_DIGITS
-    const uint4_32 u2 = zi[1 * N_SZ / 4];
-#endif
+    const bool paired = (ulong)b + 2 >= P1/2;
+    const uint4_32 u2 = paired ? zi[1 * N_SZ / 4] : (uint4_32)(0);
 	int4_32 r;
 
-	int_64 f = c[gid] + normalized_digit(u1.s0, GFN_SECOND(u2.s0));
+	int_64 f = c[gid] + normalized_digit(u1.s0, u2.s0, paired);
 	r.s0 = reduce64(&f, b, b_inv, b_s);
-	f += normalized_digit(u1.s1, GFN_SECOND(u2.s1));
+	f += normalized_digit(u1.s1, u2.s1, paired);
 	r.s1 = reduce64(&f, b, b_inv, b_s);
-	f += normalized_digit(u1.s2, GFN_SECOND(u2.s2));
+	f += normalized_digit(u1.s2, u2.s2, paired);
 	r.s2 = reduce64(&f, b, b_inv, b_s);
-	f += normalized_digit(u1.s3, GFN_SECOND(u2.s3));
+	f += normalized_digit(u1.s3, u2.s3, paired);
 	r.s3 = (int_32)(f);
 
 	write_rns(zi, r);
@@ -2779,31 +2759,25 @@ void normalize2(__global uint4_32 * restrict const z, __global const int_64 * re
 
 __kernel __attribute__((reqd_work_group_size(NORM_WG_SZ, 1, 1)))
 void mulscalar(__global uint4_32 * restrict const z, __global int_64 * restrict const c,
-	const uint_32 b_param, const uint_32 b_inv_param, const int b_s_param, const int_32 a)
+	const uint_32 b, const uint_32 b_inv, const int b_s, const int_32 a)
 {
-#if defined(GFN_FIXED_B)
- const uint_32 b=GFN_FIXED_B,b_inv=GFN_FIXED_INV;const int b_s=GFN_FIXED_SHIFT;
-#else
- const uint_32 b=b_param,b_inv=b_inv_param;const int b_s=b_s_param;
-#endif
 
 	const sz_t gid = (sz_t)get_global_id(0), lid = gid % NORM_WG_SZ;
 	__global uint4_32 * restrict const zi = &z[gid];
 	__local int_64 cl[NORM_WG_SZ];
 
 	const uint4_32 u1 = zi[0 * N_SZ / 4];
-#if GFN_PAIRED_DIGITS
-    const uint4_32 u2 = zi[1 * N_SZ / 4];
-#endif
+    const bool paired = (ulong)b + 2 >= P1/2;
+    const uint4_32 u2 = paired ? zi[1 * N_SZ / 4] : (uint4_32)(0);
 	int4_32 r;
 
-	int_64 f = normalized_digit(u1.s0, GFN_SECOND(u2.s0)) * (int_64)(a);
+	int_64 f = normalized_digit(u1.s0, u2.s0, paired) * (int_64)(a);
 	r.s0 = reduce64(&f, b, b_inv, b_s);
-	f += normalized_digit(u1.s1, GFN_SECOND(u2.s1)) * (int_64)(a);
+	f += normalized_digit(u1.s1, u2.s1, paired) * (int_64)(a);
 	r.s1 = reduce64(&f, b, b_inv, b_s);
-	f += normalized_digit(u1.s2, GFN_SECOND(u2.s2)) * (int_64)(a);
+	f += normalized_digit(u1.s2, u2.s2, paired) * (int_64)(a);
 	r.s2 = reduce64(&f, b, b_inv, b_s);
-	f += normalized_digit(u1.s3, GFN_SECOND(u2.s3)) * (int_64)(a);
+	f += normalized_digit(u1.s3, u2.s3, paired) * (int_64)(a);
 	r.s3 = reduce64(&f, b, b_inv, b_s);
 
 	cl[lid] = f;
