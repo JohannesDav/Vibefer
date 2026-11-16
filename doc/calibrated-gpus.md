@@ -59,7 +59,7 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | NVIDIA TITAN RTX | 24 GB | Turing |
 | NVIDIA TITAN V | 12 GB | Volta |
 | NVIDIA TITAN Xp | 12 GB | Pascal |
-| NVIDIA GeForce GTX TITAN X (profile may be outdated; recalibration recommended) | 12 GB | Maxwell |
+| NVIDIA GeForce GTX TITAN X* | 12 GB | Maxwell |
 | NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition | 96 GB | Blackwell |
 | NVIDIA RTX PRO 6000 Blackwell Server Edition | 96 GB | Blackwell |
 | NVIDIA RTX PRO 6000 Blackwell Workstation Edition | 96 GB | Blackwell |
@@ -106,3 +106,5 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | Tesla V100-SXM2-16GB | 16 GB | Volta |
 | Tesla P100-PCIE-16GB | 16 GB | Pascal |
 | Tesla P40 | 24 GB | Pascal |
+
+Settings can become outdated as the program changes. Those marked * are the most likely to benefit from a new calibration.
