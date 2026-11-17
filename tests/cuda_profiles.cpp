@@ -73,7 +73,10 @@ int main() {
         choices = profiles_for(known, 22);
         expect(choices.size() == 2 && choices.front()->arch == architecture::hopper,
                "Untested Hopper models must inherit the measured architecture default");
-        expect(profiles_for(known, 23).empty(), "Unsupported GFN must have no optimized profile");
+        choices = profiles_for(known, 23);
+        expect(!choices.empty() && choices.back()->kind == implementation::packed,
+               "GFN-23 must have a packed project default");
+        expect(profiles_for(known, 24).empty(), "Unsupported GFN must have no optimized profile");
         expect(architecture_for(7, 0) == architecture::volta, "Volta classification");
         expect(architecture_for(7, 5) == architecture::turing, "Turing classification");
         expect(architecture_for(8, 6) == architecture::ampere, "Ampere classification");
@@ -82,18 +85,29 @@ int main() {
         expect(architecture_for(9, 0) == architecture::hopper, "Hopper classification");
         expect(architecture_for(99, 0) == architecture::unknown, "Future architecture classification");
         const uint32_t frontiers[] = {620000000, 520000000, 100000000, 30000000,
-                                      8000000, 2800000, 660000};
+                                      8000000, 2800000, 660000, 200000};
         for (const auto &profile : embedded::device_profiles) {
             device_properties device;
             device.name = profile.name;
             device.memory_bytes = uint64_t(profile.memory_gib) * gib;
             device.arch = profile.arch;
+            // Missing sizes in an otherwise calibrated model must use exactly
+            // the same architecture/project fallbacks as an unlisted model.
+            bool has23 = false;
+            for (const auto &entry : embedded::device_profiles)
+                has23 = has23 || (std::string(entry.name) == profile.name && entry.exponent == 23);
+            if (!has23) {
+                auto unlisted = device;
+                unlisted.name = "Unlisted model";
+                expect(profiles_for(device, 23, 200000) == profiles_for(unlisted, 23, 200000),
+                       "A missing GFN entry must behave like a missing device profile");
+            }
             const auto previous = profiles_for(device, profile.exponent);
             const auto frontier = profiles_for(device, profile.exponent,
                                                 frontiers[profile.exponent - 16]);
             expect(previous.front() == frontier.front(),
                    "Small-base routing must not change a measured frontier profile");
-            for (unsigned n = 16; n <= 22; ++n) {
+            for (unsigned n = 16; n <= 23; ++n) {
                 for (uint32_t base : {1026u, 2046u, 100000u, 1000000u, 10000000u}) {
                     if (upstream_checkpoint(base, n).fields != 2) continue;
                     for (const auto *choice : profiles_for(device, n, base))

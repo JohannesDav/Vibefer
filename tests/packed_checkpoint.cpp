@@ -2,20 +2,23 @@
 // an admission decision. Link with the normal GPU build's objects except main.
 #include "ocl.h"
 #include "transform.h"
+#include <array>
 #include <filesystem>
 #include <iostream>
 #include <memory>
 
 int main(int argc, char **argv) {
     try {
-        if (argc != 2)
-            throw std::runtime_error("Usage: packed_checkpoint EMPTY_OUTPUT_DIRECTORY");
+        if (argc != 2 && argc != 4)
+            throw std::runtime_error("Usage: packed_checkpoint EMPTY_OUTPUT_DIRECTORY [n base]");
         const std::filesystem::path directory(argv[1]);
         if (!std::filesystem::create_directory(directory))
             throw std::runtime_error("Output directory must not exist");
-        constexpr unsigned n = 19;
-        constexpr size_t size = size_t(1) << n;
-        for (uint32_t base : {31296292u, 31296294u}) {
+        const unsigned n = argc == 4 ? std::stoul(argv[2]) : 19;
+        if (n < 16 || n > 23) throw std::runtime_error("Unsupported checkpoint size");
+        const size_t size = size_t(1) << n;
+        const uint32_t first_base = argc == 4 ? std::stoul(argv[3]) : 31296292;
+        for (uint32_t base : std::array<uint32_t, 2>{first_base, first_base + 2}) {
             std::unique_ptr<transform> original(
                 transform::create_original_gpu(base, n, false, 0, 3, nullptr, nullptr, false));
             std::unique_ptr<transform> optimized(

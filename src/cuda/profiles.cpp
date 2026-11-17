@@ -29,7 +29,7 @@ architecture architecture_for(unsigned major, unsigned minor) {
 std::vector<const profile_entry *> profiles_for(const device_properties &device, unsigned exponent,
                                                 uint32_t base) {
     std::vector<const profile_entry *> out;
-    const bool two_primes = base && exponent >= 16 && exponent <= 22 &&
+    const bool two_primes = base && exponent >= 16 && exponent <= 23 &&
                             upstream_checkpoint(base, exponent).fields == 2;
     // Frontier calibration can prefer the three-small-prime transform. At
     // smaller bases retain upstream's two-prime arithmetic and try the packed

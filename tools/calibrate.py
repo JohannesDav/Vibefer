@@ -13,6 +13,10 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 
 
+class UnavailableLayout(RuntimeError):
+    """The compiled kernel cannot run on this device."""
+
+
 def load_module(path):
     spec = importlib.util.spec_from_file_location("packed_calibration", path)
     m = importlib.util.module_from_spec(spec)
@@ -30,7 +34,7 @@ def upstream_two_prime_bits(base, exponent):
 
 def plans(m, src, n, b):
     lower = max(14, n - 4)
-    upper = min(n, 20)
+    upper = min(n, 21 if n == 23 else 20)
     preferred = {
         16: (14, 15, 16),
         17: (15, 16, 17),
@@ -39,6 +43,7 @@ def plans(m, src, n, b):
         20: (16, 17, 18),
         21: (17, 18, 19),
         22: (18, 19, 20),
+        23: (19, 20, 21),
     }[n]
     for ln in preferred:
         if not lower <= ln <= upper:
@@ -75,7 +80,7 @@ def plans(m, src, n, b):
         if not accepted:
             continue
         fields, ratio = accepted
-        for outer in (16, 64, 256):
+        for outer in ((16, 64, 256, 1024) if n == 23 else (16, 64, 256)):
             chunk = 4 if outer <= 64 else 1
             config = dict(
                 length=N,
@@ -177,7 +182,7 @@ def main():
         default=Path("/usr/local/cuda"),
         help="CUDA SDK prefix, headers only",
     )
-    p.add_argument("--sizes", default="16,17,18,19,20,21,22")
+    p.add_argument("--sizes", default="16,17,18,19,20,21,22,23")
     p.add_argument(
         "--base", type=int, help="Override benchmark base for every requested size"
     )
@@ -199,8 +204,8 @@ def main():
         sizes = set(map(int, a.sizes.split(",")))
     except ValueError:
         p.error("--sizes must contain comma-separated GFN exponents")
-    if not sizes <= set(range(16, 23)):
-        p.error("Only GFN sizes 16 through 22 are supported")
+    if not sizes <= set(range(16, 24)):
+        p.error("Only GFN sizes 16 through 23 are supported")
     if a.memory_gib is not None and a.memory_gib <= 0:
         p.error("Memory capacity must be positive")
     if min(a.squares, a.confirm_squares) <= 0 or a.device < 0:
@@ -254,6 +259,10 @@ def main():
         )
         save("progress", progress)
         text = (out / (label + ".log")).read_text(errors="replace")
+        if q.returncode and text.rstrip().endswith(
+            "Compiled kernel exceeds device resources"
+        ):
+            raise UnavailableLayout(label)
         assert q.returncode == 0, text[-4000:]
         match = re.search(r"RESULT (\{.*\})", text)
         return json.loads(match[1]) if match else {}
@@ -375,7 +384,7 @@ def main():
                 dict(n=n, base=b, name="original", binary=str(original), extra={}),
                 dict(n=n, base=b, name="graphs", binary=str(probe), extra={}),
             ]
-            if 2046 <= b <= 943718398 and upstream_two_prime_bits(b, n) is None:
+            if n <= 22 and 2046 <= b <= 943718398 and upstream_two_prime_bits(b, n) is None:
                 controls.append(
                     dict(
                         n=n,
@@ -396,11 +405,14 @@ def main():
                 binary = c.get("binary", str(probe))
                 name = c["name"]
                 extra = c["extra"]
-                a1 = run(
-                    f"{stage}-check-n{n}-{name}",
-                    [binary, n, b, 2, "check", "random", interval],
-                    extra,
-                )
+                try:
+                    a1 = run(
+                        f"{stage}-check-n{n}-{name}",
+                        [binary, n, b, 2, "check", "random", interval],
+                        extra,
+                    )
+                except UnavailableLayout:
+                    return None
                 checks.append(dict(stage=stage, name=name, **a1))
                 save("checks", checks)
                 vals = []
@@ -501,6 +513,7 @@ def main():
             if not any(c["name"] == "original" for c in shortlisted):
                 shortlisted.append(baseline)
             confirmed = [trial(c, "confirm", a.confirm_squares, 2) for c in shortlisted]
+            confirmed = [c for c in confirmed if c is not None]
             best = min(confirmed, key=lambda c: c["us"])
             originaltime = next(c["us"] for c in confirmed if c["name"] == "original")
             if best["us"] > 0.95 * originaltime:

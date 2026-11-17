@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
         bool check = std::string(argv[4]) == "check";
         std::string pattern = argv[5];
         unsigned interval = argc > 6 ? std::stoul(argv[6]) : 0;
-        if (count == 0 || n < 16 || n > 22 || b < 1026 || b > 2000000000 || b % 2 || !(b & (b - 1)))
+        if (count == 0 || n < 16 || n > 23 || b < 1026 || b > 2000000000 || b % 2 || !(b & (b - 1)))
             throw std::runtime_error("Unsupported calibration input");
         const size_t size = size_t(1) << n;
         gint digits(size, b);

@@ -7,7 +7,8 @@
     "19": 30000000,
     "20": 8000000,
     "21": 2800000,
-    "22": 660000
+    "22": 660000,
+    "23": 200000
   },
   "devices": [
     {
@@ -165,6 +166,15 @@
           "matrix_mad": false,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -240,6 +250,16 @@
           "matrix_mad": true,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
         }
       }
     },
@@ -331,6 +351,15 @@
           "matrix_mad": false,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -422,6 +451,15 @@
           "matrix_mad": true,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -505,6 +543,15 @@
           "matrix_mad": true,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -594,6 +641,15 @@
           "matrix_mad": false,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -677,6 +733,15 @@
           "matrix_mad": false,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -768,6 +833,15 @@
           "matrix_mad": false,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -843,6 +917,15 @@
           "matrix_mad": false,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -934,6 +1017,15 @@
           "matrix_mad": true,
           "inline_converter": false,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1025,6 +1117,15 @@
           "matrix_mad": true,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1116,6 +1217,16 @@
           "matrix_mad": true,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
         }
       }
     },
@@ -1207,6 +1318,15 @@
           "matrix_mad": false,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1298,6 +1418,15 @@
           "matrix_mad": true,
           "inline_converter": false,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1389,6 +1518,15 @@
           "matrix_mad": false,
           "inline_converter": false,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1461,6 +1599,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1538,6 +1685,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1614,6 +1770,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1679,6 +1844,15 @@
           "inner_blocks": 1,
           "digit_ratio": 2,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1754,6 +1928,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1828,6 +2011,15 @@
           "root_bits": 32,
           "inner_blocks": 1,
           "digit_ratio": 3
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1903,6 +2095,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -1970,6 +2171,16 @@
           "length": 1048576,
           "outer": 256,
           "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 1,
           "root_bits": 32,
           "inner_blocks": 1,
           "digit_ratio": 2,
@@ -2051,6 +2262,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2127,6 +2347,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2195,6 +2424,16 @@
           "root_bits": 32,
           "inner_blocks": 1,
           "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
           "matrix_mad": true
         }
       }
@@ -2271,6 +2510,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2347,6 +2595,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2422,6 +2679,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2487,6 +2753,15 @@
           "inner_blocks": 1,
           "digit_ratio": 2,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2563,6 +2838,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2639,6 +2923,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2709,6 +3002,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2783,6 +3085,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -2931,6 +3242,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3008,6 +3328,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3077,6 +3406,15 @@
           "root_bits": 32,
           "inner_blocks": 1,
           "digit_ratio": 2
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3142,6 +3480,15 @@
         "16": {
           "implementation": "three-prime",
           "root_bits": 32
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3213,6 +3560,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3300,6 +3656,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3385,6 +3750,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3452,6 +3826,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3537,6 +3920,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3620,6 +4012,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3708,6 +4109,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3794,6 +4204,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3875,6 +4294,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -3966,6 +4394,15 @@
           "outer": 256,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4051,6 +4488,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4136,6 +4582,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4213,6 +4668,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4302,6 +4766,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4389,6 +4862,16 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
         }
       }
     },
@@ -4563,6 +5046,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4642,6 +5134,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4727,6 +5228,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4816,6 +5326,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4901,6 +5420,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -4986,6 +5514,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5158,6 +5695,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5249,6 +5795,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5336,6 +5891,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5419,6 +5983,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5503,6 +6076,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5590,6 +6172,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5759,6 +6350,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5848,6 +6448,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -5932,6 +6541,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6007,6 +6625,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6096,6 +6723,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6187,6 +6823,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6270,6 +6915,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6359,6 +7013,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6448,6 +7111,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6523,6 +7195,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6606,6 +7287,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6681,6 +7371,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6755,6 +7454,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6840,6 +7548,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -6925,6 +7642,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7001,6 +7727,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7074,6 +7809,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7159,6 +7903,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7244,6 +7997,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7331,6 +8093,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7502,6 +8273,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7588,6 +8368,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7754,6 +8543,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 75
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7835,6 +8633,15 @@
           "outer": 64,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7910,6 +8717,15 @@
           "inner_blocks": 1,
           "digit_ratio": 3,
           "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -7985,6 +8801,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -8054,6 +8879,15 @@
           "outer": 256,
           "root_bits": 32,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -8139,6 +8973,15 @@
           "outer": 64,
           "root_bits": 64,
           "shared_memory_preference": 50
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     }
@@ -8228,6 +9071,15 @@
         "outer": 64,
         "root_bits": 32,
         "shared_memory_preference": 50
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 256,
+        "chunk": 1,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2
       }
     },
     "ampere": {
@@ -8314,6 +9166,15 @@
         "outer": 64,
         "root_bits": 32,
         "shared_memory_preference": 50
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 256,
+        "chunk": 1,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2
       }
     },
     "blackwell": {
@@ -8400,6 +9261,15 @@
         "outer": 64,
         "root_bits": 64,
         "shared_memory_preference": 75
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 1024,
+        "chunk": 1,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2
       }
     },
     "maxwell": {
@@ -8470,6 +9340,16 @@
         "outer": 64,
         "root_bits": 32,
         "shared_memory_preference": 50
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 1024,
+        "chunk": 1,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2,
+        "matrix_mad": true
       }
     },
     "pascal": {
@@ -8540,6 +9420,15 @@
         "outer": 256,
         "root_bits": 32,
         "shared_memory_preference": 50
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 1024,
+        "chunk": 1,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2
       }
     },
     "turing": {
@@ -8626,6 +9515,15 @@
         "outer": 256,
         "root_bits": 32,
         "shared_memory_preference": 50
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 256,
+        "chunk": 2,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2
       }
     },
     "volta": {
@@ -8712,6 +9610,15 @@
         "outer": 256,
         "root_bits": 64,
         "shared_memory_preference": 50
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 1024,
+        "chunk": 1,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2
       }
     },
     "ampere_sm80": {
@@ -8782,6 +9689,15 @@
         "inner_blocks": 1,
         "digit_ratio": 3,
         "matrix_mad": true
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 1024,
+        "chunk": 2,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2
       }
     },
     "hopper": {
@@ -8852,6 +9768,15 @@
         "inner_blocks": 1,
         "digit_ratio": 3,
         "matrix_mad": true
+      },
+      "23": {
+        "implementation": "packed",
+        "length": 1048576,
+        "outer": 1024,
+        "chunk": 2,
+        "root_bits": 32,
+        "inner_blocks": 1,
+        "digit_ratio": 2
       }
     }
   },
@@ -8939,6 +9864,15 @@
       "outer": 64,
       "root_bits": 32,
       "shared_memory_preference": 50
+    },
+    "23": {
+      "implementation": "packed",
+      "length": 1048576,
+      "outer": 1024,
+      "chunk": 1,
+      "root_bits": 32,
+      "inner_blocks": 1,
+      "digit_ratio": 2
     }
   }
 }

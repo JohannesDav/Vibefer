@@ -27,6 +27,10 @@
     {
       "n": 22,
       "benchmark_base": 660000
+    },
+    {
+      "n": 23,
+      "benchmark_base": 200000
     }
   ]
 }

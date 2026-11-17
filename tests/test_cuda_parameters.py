@@ -41,6 +41,12 @@ for n in range(16, 23):
             fields = rng.choice([2, 3, 5, 8, 14, 22, 32])
             ratio = rng.choice([2, 3, 4])
             cases.append((base, 1 << ln, 1 << (n - ln), ratio, fields))
+# GFN-23 reuses the existing packed transform lengths and prime pools.
+for ln in (19, 20, 21):
+    for base in (1026, 200000, 660000, 3000000):
+        for fields in (6, 8, 10, 11, 12, 13, 14):
+            for ratio in (2, 3):
+                cases.append((base, 1 << ln, 1 << (23 - ln), ratio, fields))
 # Several exact accepted and rejected neighbors around useful field counts.
 for base in [28000000, 30000000]:
     for fields in range(10, 18):

@@ -65,7 +65,7 @@ transform *make_cuda(uint32_t b,uint32_t n,bool boinc,size_t device,size_t regis
 transform *make_automatic(uint32_t b,uint32_t n,bool boinc,size_t device,size_t registers,
 						  cl_platform_id platform_id,cl_device_id boinc_gpu,bool verbose) {
 	auto stock=[&] { return create_original_opencl(b,n,boinc,device,registers,platform_id,boinc_gpu,verbose); };
-	if(n<16 || n>22 || std::getenv("GENEFER_FORCE_OPENCL")) return stock();
+	if(n<16 || n>23 || std::getenv("GENEFER_FORCE_OPENCL")) return stock();
 	cl_device_id gpu=boinc_gpu;
 	if(!boinc || !gpu) {
 		platform devices;
