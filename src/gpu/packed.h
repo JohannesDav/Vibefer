@@ -52,7 +52,7 @@ class packed_transform : public transformGPUs<Fields, Wide> {
         if (!path) path = std::getenv("GENEFER_PACKED_KERNEL");
 #endif
         if (path) {
-            if (n < 16 || n > 22)
+            if (n < 16 || n > 23)
                 throw std::runtime_error("Packed OpenCL arithmetic requires a supported GFN exponent and device");
             if (boinc && platform_id && device_id)
                 packed_ = std::make_unique<packed_device>(b, device_id, path, verbose, size_t(1) << n,

@@ -2,7 +2,7 @@
 
 **Warning:** all changes in this fork were written by AI and have not been independently reviewed.
 
-This is a fork of [Yves Gallot’s genefer22](https://github.com/galloty/genefer22), the program PrimeGrid uses to test numbers of the form b<sup>2<sup>n</sup></sup> + 1 (generalized Fermat numbers) for primality. It changes only the GPU version, and only on NVIDIA cards. It targets PrimeGrid’s GFN-16 to GFN-22 subprojects, where n is 16 to 22. The test itself, the proofs and the error checks are all Gallot’s work. This fork only changes how the arithmetic runs on the GPU (see [exactness and fallbacks](#exactness-and-fallbacks)).
+This is a fork of [Yves Gallot’s genefer22](https://github.com/galloty/genefer22), the program PrimeGrid uses to test numbers of the form b<sup>2<sup>n</sup></sup> + 1 (generalized Fermat numbers) for primality. It changes only the GPU version, and only on NVIDIA cards. It targets PrimeGrid’s GFN-16 to GFN-23 subprojects, where n is 16 to 23. The test itself, the proofs and the error checks are all Gallot’s work. This fork only changes how the arithmetic runs on the GPU (see [exactness and fallbacks](#exactness-and-fallbacks)).
 
 On the NVIDIA cards we tested, complete tests ran **1.1 to 2.1 times as fast** with this fork.
 
@@ -35,7 +35,7 @@ None of these changes trade accuracy for speed. Before using an optimization for
 
 The arithmetic stays exact, so each test gives the same result and writes the same proof file as the original version. The proof files also matched in every benchmark comparison.
 
-If a check fails, the program uses Gallot’s arithmetic instead. It also runs Gallot’s original code, unchanged, on non-NVIDIA GPUs, for GFN sizes outside 16–22, or if the optimized code cannot start.
+If a check fails, the program uses Gallot’s arithmetic instead. It also runs Gallot’s original code, unchanged, on non-NVIDIA GPUs, for GFN sizes outside 16–23, or if the optimized code cannot start.
 
 Every test still runs Gallot’s Gerbicz–Li error check. Two [optional checks](doc/opencl.md#optional-extra-checks) can also verify the finished result with his original code.
 

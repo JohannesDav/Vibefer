@@ -196,7 +196,7 @@ A *profile* is a set of GPU kernel settings for one GFN size, chosen by timing t
 
 When a test starts:
 
-1. The program runs Gallot’s original OpenCL code, unchanged, if the GPU is not an NVIDIA card, the GFN size is outside 16–22, the optimized code cannot be initialized, or the GPU lacks a required feature (32-thread warps, 1024-thread blocks and 48 KB of shared memory). Setting the environment variable `GENEFER_FORCE_OPENCL=1` also forces this.
+1. The program runs Gallot’s original OpenCL code, unchanged, if the GPU is not an NVIDIA card, the GFN size is outside 16–23, the optimized code cannot be initialized, or the GPU lacks a required feature (32-thread warps, 1024-thread blocks and 48 KB of shared memory). Setting the environment variable `GENEFER_FORCE_OPENCL=1` also forces this.
 2. Otherwise, it considers up to three profiles in order: one for this GPU model, one for its architecture, and the default for the GFN size. An exact model and memory-size match takes priority. If none is available for this test, it tries the nearest calibrated memory size of the same model and architecture.
 3. It uses the first profile that passes two checks: the worst-case arithmetic bounds for this base, and the GPU’s memory and resource limits.
 4. If no profile passes, it runs Gallot’s arithmetic with his original kernels.
@@ -215,7 +215,7 @@ Calibration measures the alternative kernel layouts on a GPU to create or improv
 python3 tools/calibrate.py --output calibration-results --memory-gib 16
 ```
 
-The tool builds small test programs and times each layout for GFN-16 to GFN-22 with short runs, then times the fastest candidates again with longer runs. It also checks the arithmetic against GMP, including multiplication, checkpoints and the operations used to generate proofs.
+The tool builds small test programs and times each layout for GFN-16 to GFN-23 with short runs, then times the fastest candidates again with longer runs. It also checks the arithmetic against GMP, including multiplication, checkpoints and the operations used to generate proofs.
 
 Useful options:
 

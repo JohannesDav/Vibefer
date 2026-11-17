@@ -236,7 +236,7 @@ typedef struct {
 } // namespace
 
 generated_kernel generate_kernel(uint32_t base, unsigned exponent, const kernel_plan &plan) {
-    require(exponent >= 16 && exponent <= 22, "Unsupported OpenCL GFN size");
+    require(exponent >= 16 && exponent <= 23, "Unsupported OpenCL GFN size");
     require(plan.length >= 16384 && plan.length <= (1u << 22) && !(plan.length & (plan.length - 1)),
             "Unsupported packed length");
     require(uint64_t(plan.length) * plan.pack == (uint64_t(1) << exponent), "Packed exponent mismatch");
