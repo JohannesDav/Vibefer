@@ -69,6 +69,12 @@ class ReleaseChecks(unittest.TestCase):
                         expected_xml = b"<app_info/>\r\n" if platform == "windows" else b"<app_info/>\n"
                         self.assertEqual(archive.read("app_info.xml"), expected_xml)
                 self.assertEqual(len(Path("dist/SHA256SUMS").read_text().splitlines()), 2)
+                self.assertEqual(
+                    Path("release-notes.md").read_text(encoding="utf-8").split("\n\n")[0],
+                    "Experimental build of Vibefer for NVIDIA GPUs. All changes were written by AI "
+                    "and haven’t been independently reviewed. It is unofficial and not endorsed by Yves Gallot or PrimeGrid. "
+                    "**Install at your own risk.**",
+                )
             finally:
                 os.chdir(original)
 

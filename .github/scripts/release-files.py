@@ -86,8 +86,9 @@ def release_notes():
     guide = "opencl" if os.environ["GENEFER_VARIANT"] == "opencl" else "cuda"
     root = "https://github.com/" + repo
     Path("release-notes.md").write_text(
-        "Experimental build of Vibefer, an unofficial fork of genefer for NVIDIA GPUs, not affiliated with or endorsed by Yves Gallot. All changes were written by AI "
-        "and haven’t been independently reviewed. Install at your own risk.\n\n"
+        "Experimental build of Vibefer for NVIDIA GPUs. All changes were written by AI "
+        "and haven’t been independently reviewed. It is unofficial and not endorsed by Yves Gallot or PrimeGrid. "
+        "**Install at your own risk.**\n\n"
         "See the [installation guide](" + root + "/blob/main/doc/" + guide +
         ".md#installing-a-prebuilt-release) for how to set it up with BOINC.\n",
         encoding="utf-8",

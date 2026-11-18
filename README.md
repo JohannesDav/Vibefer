@@ -1,8 +1,8 @@
 # Vibefer (CUDA)
 
-An experimental fork of genefer with speedups for NVIDIA GPUs.
+### An experimental vibe-coded fork of genefer with speedups for NVIDIA GPUs
 
-Based on Yves Gallot’s work in [genefer](https://github.com/galloty/genefer22). This fork is unofficial, and not affiliated with or endorsed by him.
+Based on Yves Gallot’s work in [genefer](https://github.com/galloty/genefer22). This fork is unofficial, and not affiliated with or endorsed by Yves Gallot or PrimeGrid.
 
 **Warning:** all changes in this fork were written by AI and have not been independently reviewed.
 
