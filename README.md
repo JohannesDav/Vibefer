@@ -6,13 +6,13 @@ This is a fork of [Yves Gallot’s genefer22](https://github.com/galloty/genefer
 
 On the NVIDIA cards we tested, complete tests ran **1.1 to 2.1 times as fast** with this fork.
 
-| GPU | GFN-16 | GFN-17 | GFN-18 | GFN-19 | GFN-20 | GFN-21 | GFN-22 |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| RTX 2080 Ti | 1.2× | 1.3× | 1.5× | 1.8× | — | — | — |
-| RTX 3090 | 1.2× | 1.3× | 1.4× | 1.7× | 2.0× | — | — |
-| RTX 4060 Ti | 1.2× | 1.3× | 1.5× | 1.7× | 1.9× | — | — |
-| RTX 5070 | 1.2× | 1.3× | 1.4× | 1.7× | 1.9× | — | — |
-| RTX 5090 | 1.1× | 1.2× | 1.2× | 1.5× | 1.6× | 2.1× | 1.9× |
+| GPU | GFN-16 | GFN-17 | GFN-18 | GFN-19 | GFN-20 | GFN-21 | GFN-22 | GFN-23 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| RTX 2080 Ti | 1.2× | 1.3× | 1.5× | 1.8× | — | — | — | — |
+| RTX 3090 | 1.2× | 1.3× | 1.4× | 1.7× | 2.0× | — | — | — |
+| RTX 4060 Ti | 1.2× | 1.3× | 1.5× | 1.7× | 1.9× | — | — | — |
+| RTX 5070 | 1.2× | 1.3× | 1.4× | 1.7× | 1.9× | — | — | — |
+| RTX 5090 | 1.1× | 1.2× | 1.2× | 1.5× | 1.6× | 2.1× | 1.9× | — |
 
 Speedup for one complete test, including proof generation. A dash means that comparison was not run. The [benchmark results](doc/benchmarks.md) give the times in seconds and the bases used.
 
