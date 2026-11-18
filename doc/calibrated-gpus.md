@@ -1,6 +1,6 @@
 # Calibrated GPUs
 
-The executable contains GPU settings measured with this OpenCL version on each GPU below, for GFN sizes from 16 to 23. On each card, we timed the alternative kernel layouts in short runs, kept the fastest, and checked the arithmetic against GMP. Where the layout measured with the [CUDA version](https://github.com/JohannesDav/genefer22) was about as fast, we kept it.
+The executable contains GPU settings measured with this OpenCL version on each GPU below, for GFN sizes from 16 to 23. On each card, we timed the alternative kernel layouts in short runs, kept the fastest, and checked the arithmetic against GMP. Where the layout measured with the [CUDA version](https://github.com/JohannesDav/vibefer) was about as fast, we kept it.
 
 For an unlisted memory size of a listed GPU model, the program first tries that model’s nearest calibrated memory size. For other unlisted NVIDIA GPUs, it uses settings chosen for cards of the same architecture, or general settings for the GFN size. See [how the program chooses its arithmetic](opencl.md#how-the-program-chooses-its-arithmetic).
 

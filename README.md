@@ -1,8 +1,12 @@
-# genefer22: experimental OpenCL speedups for NVIDIA GPUs
+# Vibefer (OpenCL)
+
+An experimental fork of genefer with speedups for NVIDIA GPUs.
+
+Based on Yves Gallot’s work in [genefer](https://github.com/galloty/genefer22). This fork is unofficial, and not affiliated with or endorsed by him.
 
 **Warning:** all changes in this fork were written by AI and have not been independently reviewed.
 
-This is a fork of [Yves Gallot’s genefer22](https://github.com/galloty/genefer22), the program PrimeGrid uses to test numbers of the form b<sup>2<sup>n</sup></sup> + 1 (generalized Fermat numbers) for primality. It changes only the GPU version, and only on NVIDIA cards. It targets PrimeGrid’s GFN-16 to GFN-23 subprojects, where n is 16 to 23. The test itself, the proofs and the error checks are all Gallot’s work. This fork only changes how the arithmetic runs on the GPU (see [exactness and fallbacks](#exactness-and-fallbacks)).
+PrimeGrid uses genefer to test numbers of the form b<sup>2<sup>n</sup></sup> + 1 (generalized Fermat numbers) for primality. Vibefer changes only the GPU version, and only on NVIDIA cards. It targets PrimeGrid’s GFN-16 to GFN-23 subprojects, where n is 16 to 23. The test itself, the proofs and the error checks are all Gallot’s work. This fork only changes how the arithmetic runs on the GPU (see [exactness and fallbacks](#exactness-and-fallbacks)).
 
 On the NVIDIA cards we tested, complete tests ran **1.1 to 2.1 times as fast** with this fork.
 
@@ -16,7 +20,7 @@ On the NVIDIA cards we tested, complete tests ran **1.1 to 2.1 times as fast** w
 
 Speedup for one complete test, including proof generation. A dash means that comparison was not run. The [benchmark results](doc/benchmarks.md) give the times in seconds and the bases used.
 
-The same optimizations are also available as a [CUDA version](https://github.com/JohannesDav/genefer22). On many of the GPUs and GFN sizes we tested, this OpenCL version is nearly as fast. On others, the CUDA version is faster ([comparison](doc/benchmarks.md#comparison-with-cuda)).
+The same optimizations are also available as a [CUDA version](https://github.com/JohannesDav/vibefer). On many of the GPUs and GFN sizes we tested, this OpenCL version is nearly as fast. On others, the CUDA version is faster ([comparison](doc/benchmarks.md#comparison-with-cuda)).
 
 ## What changed
 

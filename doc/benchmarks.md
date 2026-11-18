@@ -32,7 +32,7 @@ Results can differ noticeably between machines with the same GPU, depending for 
 
 ## Comparison with CUDA
 
-Each cell shows the time this OpenCL version saves as a percentage of the time the [CUDA version](https://github.com/JohannesDav/genefer22) saves, both compared with the original genefer22. **100% means both save the same amount of time.** Lower values show where the OpenCL version falls behind.
+Each cell shows the time this OpenCL version saves as a percentage of the time the [CUDA version](https://github.com/JohannesDav/vibefer) saves, both compared with the original genefer22. **100% means both save the same amount of time.** Lower values show where the OpenCL version falls behind.
 
 The OpenCL and CUDA measurements used different rented machines, drivers and power settings, so small differences are not meaningful.
 

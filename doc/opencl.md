@@ -57,7 +57,7 @@ sudo apt install git g++ python3 libgmp-dev ocl-icd-opencl-dev libboinc-app-dev
 ### 2. Download and build
 
 ```bash
-git clone --branch opencl https://github.com/JohannesDav/genefer22.git ~/genefer22-opencl
+git clone --branch opencl https://github.com/JohannesDav/vibefer.git ~/genefer22-opencl
 cd ~/genefer22-opencl
 python3 build.py --boinc /usr
 ```
@@ -137,7 +137,7 @@ make -C boinc/lib -f Makefile.mingw -j4 libboinc_api.a libboinc.a libboinc_openc
 In the same window:
 
 ```bash
-git clone --branch opencl https://github.com/JohannesDav/genefer22.git genefer22-opencl
+git clone --branch opencl https://github.com/JohannesDav/vibefer.git genefer22-opencl
 cd genefer22-opencl
 python build.py --boinc ../boinc
 ./build/geneferg.exe
