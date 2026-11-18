@@ -57,19 +57,19 @@ sudo apt install git g++ python3 libgmp-dev ocl-icd-opencl-dev libboinc-app-dev
 ### 2. Download and build
 
 ```bash
-git clone --branch opencl https://github.com/JohannesDav/vibefer.git ~/genefer22-opencl
-cd ~/genefer22-opencl
+git clone --branch opencl https://github.com/JohannesDav/vibefer.git ~/vibefer-opencl
+cd ~/vibefer-opencl
 python3 build.py --boinc /usr
 ```
 
-This downloads the `opencl` branch into its own `genefer22-opencl` directory. Without `--branch opencl`, you would get the CUDA version.
+This downloads the `opencl` branch into its own `vibefer-opencl` directory. Without `--branch opencl`, you would get the CUDA version.
 
 ### 3. Install it in BOINC
 
 > [!IMPORTANT]
 > With this `app_info.xml`, BOINC only runs the GFN applications it lists. Other PrimeGrid subprojects, such as CPU work, stop on this computer until you remove it. Any unfinished PrimeGrid tasks on this computer may also be lost when you switch.
 
-From the `genefer22-opencl` directory, stop BOINC, copy the two files into its PrimeGrid directory, and start it again:
+From the `vibefer-opencl` directory, stop BOINC, copy the two files into its PrimeGrid directory, and start it again:
 
 ```bash
 sudo systemctl stop boinc-client
@@ -85,7 +85,7 @@ BOINC’s event log (in BOINC Manager, Tools > Event Log) should now show `Found
 ### Updating
 
 ```bash
-cd ~/genefer22-opencl
+cd ~/vibefer-opencl
 git pull
 python3 build.py --boinc /usr
 sudo systemctl stop boinc-client
@@ -137,8 +137,8 @@ make -C boinc/lib -f Makefile.mingw -j4 libboinc_api.a libboinc.a libboinc_openc
 In the same window:
 
 ```bash
-git clone --branch opencl https://github.com/JohannesDav/vibefer.git genefer22-opencl
-cd genefer22-opencl
+git clone --branch opencl https://github.com/JohannesDav/vibefer.git vibefer-opencl
+cd vibefer-opencl
 python build.py --boinc ../boinc
 ./build/geneferg.exe
 ```
@@ -150,7 +150,7 @@ The last command lists the options and the OpenCL devices it finds. Check that y
 > [!IMPORTANT]
 > With this `app_info.xml`, BOINC only runs the GFN applications it lists. Other PrimeGrid subprojects, such as CPU work, stop on this computer until you remove it. Any unfinished PrimeGrid tasks on this computer may also be lost when you switch.
 
-In BOINC Manager’s Advanced View, choose **File > Shut down connected client**, then close BOINC Manager. From the `genefer22-opencl` directory, copy the two files into BOINC’s PrimeGrid directory:
+In BOINC Manager’s Advanced View, choose **File > Shut down connected client**, then close BOINC Manager. From the `vibefer-opencl` directory, copy the two files into BOINC’s PrimeGrid directory:
 
 ```bash
 project=/c/ProgramData/BOINC/projects/www.primegrid.com
@@ -165,7 +165,7 @@ Reopen BOINC Manager. Its event log (**Tools > Event Log**) should now show `Fou
 ### Updating
 
 ```bash
-cd ~/genefer-build/genefer22-opencl
+cd ~/genefer-build/vibefer-opencl
 git pull
 python build.py --boinc ../boinc
 ```
