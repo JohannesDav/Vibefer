@@ -4,7 +4,7 @@ Each comparison runs a complete test of the same candidate on the same machine, 
 
 - The original version was compiled from Gallot’s commit `56905b2339b3fed056fc0c24d2e331d588d028bb`.
 - Both versions ran Gallot’s Gerbicz–Li error check. This fork’s optional `--check-certificate` and `--check-tail` checks were off.
-- Each subproject used the same candidate on every GPU, with a round base near PrimeGrid’s search range in November 2026, according to its [project status page](https://www.primegrid.com/server_status_subprojects.php): 620,000,000 for GFN-16, 520,000,000 for GFN-17-Mega, 100,000,000 for GFN-18, 30,000,000 for GFN-19, 8,000,000 for GFN-20, 2,800,000 for GFN-21 and 660,000 for GFN-22.
+- Each subproject used the same candidate on every GPU, with a round base near PrimeGrid’s search range in November 2026, according to its [project status page](https://www.primegrid.com/server_status_subprojects.php): 620,000,000 for GFN-16, 520,000,000 for GFN-17-Mega, 100,000,000 for GFN-18, 30,000,000 for GFN-19, 8,000,000 for GFN-20, 2,800,000 for GFN-21, 660,000 for GFN-22 and 200,000 for GFN-23.
 
 In every comparison, the two versions wrote identical proof files, and each proof passed Gallot’s certificate check.
 
@@ -31,15 +31,15 @@ Results can differ noticeably between machines with the same GPU, depending for 
 | RTX 5090 | 37.2 → 17.6 (52.7%) | 80.4 → 39.9 (50.4%) | 159.7 → 86.9 (45.6%) | 361.3 → 234.5 (35.1%) |
 | Tesla V100 | 58.6 → 40.7 (30.5%) | 146.9 → 95.1 (35.3%) | — | — |
 
-| GPU | GFN-20 | GFN-21 | GFN-22 |
-|---|---:|---:|---:|
-| GTX 1080 Ti | 19710.0 → 12210.6 (38.0%) | — | — |
-| RTX 2080 Ti | 6336.9 → 3167.4 (50.0%) | — | — |
-| RTX 3060 12GB | 9483.9 → 5087.8 (46.4%) | — | — |
-| RTX 3080 | 7412.5 → 3771.5 (49.1%) | — | — |
-| RTX 3090 | 4431.6 → 2135.7 (51.8%) | 31500.4 → 12147.2 (61.4%) | — |
-| RTX 4060 Ti 16GB | 4419.9 → 2222.5 (49.7%) | 22186.9 → 8769.6 (60.5%) | — |
-| RTX 4090 | 1580.7 → 854.8 (45.9%) | 5605.7 → 2735.0 (51.2%) | 19801.8 → 8631.3 (56.4%) |
-| RTX 5070 | 3083.0 → 1616.4 (47.6%) | 13223.3 → 5761.2 (56.4%) | — |
-| RTX 5080 | — | 9268.6 → 3894.3 (58.0%) | — |
-| RTX 5090 | 1122.6 → 669.2 (40.4%) | 5304.4 → 2306.2 (56.5%) | 14611.3 → 6840.8 (53.2%) |
+| GPU | GFN-20 | GFN-21 | GFN-22 | GFN-23 |
+|---|---:|---:|---:|---:|
+| GTX 1080 Ti | 19710.0 → 12210.6 (38.0%) | — | — | — |
+| RTX 2080 Ti | 6336.9 → 3167.4 (50.0%) | — | — | — |
+| RTX 3060 12GB | 9483.9 → 5087.8 (46.4%) | — | — | — |
+| RTX 3080 | 7412.5 → 3771.5 (49.1%) | — | — | — |
+| RTX 3090 | 4431.6 → 2135.7 (51.8%) | 31500.4 → 12147.2 (61.4%) | — | — |
+| RTX 4060 Ti 16GB | 4419.9 → 2222.5 (49.7%) | 22186.9 → 8769.6 (60.5%) | — | — |
+| RTX 4090 | 1580.7 → 854.8 (45.9%) | 5605.7 → 2735.0 (51.2%) | 19801.8 → 8631.3 (56.4%) | — |
+| RTX 5070 | 3083.0 → 1616.4 (47.6%) | 13223.3 → 5761.2 (56.4%) | 31519.1 → 17686.4 (43.9%) | — |
+| RTX 5080 | — | 9268.6 → 3894.3 (58.0%) | — | — |
+| RTX 5090 | 1122.6 → 669.2 (40.4%) | 5304.4 → 2306.2 (56.5%) | 14611.3 → 6840.8 (53.2%) | 57558.0 → 35417.3 (38.5%) |
