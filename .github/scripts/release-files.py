@@ -67,7 +67,7 @@ def package(platform):
     binary = Path("build") / executable
     inspect_binary(binary, platform)
     variant = "-opencl" if os.environ["GENEFER_VARIANT"] == "opencl" else ""
-    path = Path("dist") / ("genefer22-johannesdav" + variant + "-" + label() + "-" + platform + "-x64.zip")
+    path = Path("dist") / ("vibefer" + variant + "-" + label() + "-" + platform + "-x64.zip")
     path.parent.mkdir(exist_ok=True)
     template = Path("doc") / ("boinc-app_info-windows.xml" if platform == "windows" else "boinc-app_info.xml")
     # Explicit Unix permissions survive the Actions artifact and ZIP transports.
@@ -86,7 +86,7 @@ def release_notes():
     guide = "opencl" if os.environ["GENEFER_VARIANT"] == "opencl" else "cuda"
     root = "https://github.com/" + repo
     Path("release-notes.md").write_text(
-        "Experimental build of this genefer22 fork for NVIDIA GPUs. All changes were written by AI "
+        "Experimental build of Vibefer, an unofficial fork of genefer for NVIDIA GPUs, not affiliated with or endorsed by Yves Gallot. All changes were written by AI "
         "and haven’t been independently reviewed. Install at your own risk.\n\n"
         "See the [installation guide](" + root + "/blob/main/doc/" + guide +
         ".md#installing-a-prebuilt-release) for how to set it up with BOINC.\n",
@@ -97,7 +97,7 @@ def release_notes():
 def checksums():
     paths = sorted(Path("dist").glob("*.zip"))
     variant = "-opencl" if os.environ["GENEFER_VARIANT"] == "opencl" else ""
-    expected = {"genefer22-johannesdav" + variant + "-" + label() + "-" + platform + "-x64.zip"
+    expected = {"vibefer" + variant + "-" + label() + "-" + platform + "-x64.zip"
                 for platform in ("windows", "linux")}
     if {path.name for path in paths} != expected:
         raise ValueError("Expected exactly the two platform archives")

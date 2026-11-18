@@ -4,7 +4,7 @@ This guide explains how to install `geneferg`, the GPU executable in this fork, 
 
 ## Installing a prebuilt release
 
-Each [release](https://github.com/JohannesDav/genefer22/releases/latest) has a zip for Linux and one for Windows, both for x86-64. Each contains the executable and its `app_info.xml`, ready to copy into BOINC. The Linux build runs on distributions with glibc 2.31 or newer, such as Ubuntu 20.04 or Debian 11 and later. The Windows build was tested on Windows 11 and should also run on 64-bit Windows 10. Both need an NVIDIA GPU with its driver, and BOINC attached to PrimeGrid.
+Each [release](https://github.com/JohannesDav/vibefer/releases/latest) has a zip for Linux and one for Windows, both for x86-64. Each contains the executable and its `app_info.xml`, ready to copy into BOINC. The Linux build runs on distributions with glibc 2.31 or newer, such as Ubuntu 20.04 or Debian 11 and later. The Windows build was tested on Windows 11 and should also run on 64-bit Windows 10. Both need an NVIDIA GPU with its driver, and BOINC attached to PrimeGrid.
 
 > [!IMPORTANT]
 > With this `app_info.xml`, BOINC only runs the GFN applications it lists. Other PrimeGrid subprojects, such as CPU work, stop on this computer until you remove it. Any unfinished PrimeGrid tasks on this computer may also be lost when you switch.
@@ -12,7 +12,7 @@ Each [release](https://github.com/JohannesDav/genefer22/releases/latest) has a z
 **On Ubuntu**, with Ubuntu’s `boinc-client` package, run this from the directory containing the downloaded zip:
 
 ```bash
-unzip genefer22-johannesdav-*-linux-x64.zip
+unzip vibefer-*-linux-x64.zip
 sudo systemctl stop boinc-client
 sudo install -o boinc -g boinc -m 755 geneferg /var/lib/boinc/projects/www.primegrid.com/
 sudo install -o boinc -g boinc -m 644 app_info.xml /var/lib/boinc/projects/www.primegrid.com/
@@ -88,8 +88,8 @@ dpkg-deb -x cuda-cudart-dev-12-8_12.8.90-1_amd64.deb ~/cuda-headers
 ### 2. Download and build
 
 ```bash
-git clone https://github.com/JohannesDav/genefer22.git ~/genefer22
-cd ~/genefer22
+git clone https://github.com/JohannesDav/vibefer.git ~/vibefer
+cd ~/vibefer
 python3 build.py --cuda ~/cuda-headers/usr/local/cuda-12.8 --boinc /usr
 ```
 
@@ -98,7 +98,7 @@ python3 build.py --cuda ~/cuda-headers/usr/local/cuda-12.8 --boinc /usr
 > [!IMPORTANT]
 > With this `app_info.xml`, BOINC only runs the GFN applications it lists. Other PrimeGrid subprojects, such as CPU work, stop on this computer until you remove it. Any unfinished PrimeGrid tasks on this computer may also be lost when you switch.
 
-From the `genefer22` directory, stop BOINC, copy the two files into its PrimeGrid directory, and start it again:
+From the `vibefer` directory, stop BOINC, copy the two files into its PrimeGrid directory, and start it again:
 
 ```bash
 sudo systemctl stop boinc-client
@@ -114,7 +114,7 @@ BOINC’s event log (in BOINC Manager, Tools > Event Log) should now show `Found
 ### Updating
 
 ```bash
-cd ~/genefer22
+cd ~/vibefer
 git pull
 python3 build.py --cuda ~/cuda-headers/usr/local/cuda-12.8 --boinc /usr
 sudo systemctl stop boinc-client
@@ -170,8 +170,8 @@ The CUDA download only contains headers. It doesn’t install anything or change
 In the same window:
 
 ```bash
-git clone https://github.com/JohannesDav/genefer22.git
-cd genefer22
+git clone https://github.com/JohannesDav/vibefer.git
+cd vibefer
 python build.py --boinc ../boinc --cuda ../cuda_cudart-windows-x86_64-12.8.90-archive
 ./build/geneferg.exe
 ```
@@ -183,7 +183,7 @@ The last command lists the options and the OpenCL devices it finds. Check that y
 > [!IMPORTANT]
 > With this `app_info.xml`, BOINC only runs the GFN applications it lists. Other PrimeGrid subprojects, such as CPU work, stop on this computer until you remove it. Any unfinished PrimeGrid tasks on this computer may also be lost when you switch.
 
-In BOINC Manager’s Advanced View, choose **File > Shut down connected client**, then close BOINC Manager. From the `genefer22` directory, copy the two files into BOINC’s PrimeGrid directory:
+In BOINC Manager’s Advanced View, choose **File > Shut down connected client**, then close BOINC Manager. From the `vibefer` directory, copy the two files into BOINC’s PrimeGrid directory:
 
 ```bash
 project=/c/ProgramData/BOINC/projects/www.primegrid.com
@@ -198,7 +198,7 @@ Reopen BOINC Manager. Its event log (**Tools > Event Log**) should now show `Fou
 ### Updating
 
 ```bash
-cd ~/genefer-build/genefer22
+cd ~/genefer-build/vibefer
 git pull
 python build.py --boinc ../boinc --cuda ../cuda_cudart-windows-x86_64-12.8.90-archive
 ```

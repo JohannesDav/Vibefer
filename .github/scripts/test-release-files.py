@@ -62,7 +62,7 @@ class ReleaseChecks(unittest.TestCase):
                         release.package(platform)
                     release.checksums()
                 for platform, name in [("windows", "geneferg.exe"), ("linux", "geneferg")]:
-                    path = Path("dist/genefer22-johannesdav-opencl-v1.2.3-" + platform + "-x64.zip")
+                    path = Path("dist/vibefer-opencl-v1.2.3-" + platform + "-x64.zip")
                     with zipfile.ZipFile(path) as archive:
                         self.assertEqual(set(archive.namelist()), {name, "app_info.xml"})
                         self.assertEqual(stat.S_IMODE(archive.getinfo(name).external_attr >> 16), 0o755)

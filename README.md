@@ -1,8 +1,12 @@
-# genefer22: experimental CUDA speedups for NVIDIA GPUs
+# Vibefer (CUDA)
+
+An experimental fork of genefer with speedups for NVIDIA GPUs.
+
+Based on Yves Gallot’s work in [genefer](https://github.com/galloty/genefer22). This fork is unofficial, and not affiliated with or endorsed by him.
 
 **Warning:** all changes in this fork were written by AI and have not been independently reviewed.
 
-This is a fork of [Yves Gallot’s genefer22](https://github.com/galloty/genefer22), the program PrimeGrid uses to test numbers of the form b<sup>2<sup>n</sup></sup> + 1 (generalized Fermat numbers) for primality. It changes only the GPU version, and only on NVIDIA cards. It targets PrimeGrid’s GFN-16 to GFN-23 subprojects, where n is 16 to 23. The test itself, the proofs and the error checks are all Gallot’s work. This fork only changes how the arithmetic runs on the GPU (see [exactness and fallbacks](#exactness-and-fallbacks)).
+PrimeGrid uses genefer to test numbers of the form b<sup>2<sup>n</sup></sup> + 1 (generalized Fermat numbers) for primality. Vibefer changes only the GPU version, and only on NVIDIA cards. It targets PrimeGrid’s GFN-16 to GFN-23 subprojects, where n is 16 to 23. The test itself, the proofs and the error checks are all Gallot’s work. This fork only changes how the arithmetic runs on the GPU (see [exactness and fallbacks](#exactness-and-fallbacks)).
 
 On the NVIDIA cards we tested, complete tests ran **1.3 to 2.6 times as fast** with this fork.
 
@@ -19,7 +23,7 @@ On the NVIDIA cards we tested, complete tests ran **1.3 to 2.6 times as fast** w
 
 Speedup for one complete test, including proof generation. A dash means that comparison was not run. The [benchmark results](doc/benchmarks.md) give the times in seconds, the bases used and results for more GPUs.
 
-The same optimizations are also available as an [OpenCL version](https://github.com/JohannesDav/genefer22/tree/opencl). On many of the GPUs and GFN sizes we tested, it is nearly as fast as this CUDA version. On others, the gap is larger ([comparison](https://github.com/JohannesDav/genefer22/blob/opencl/doc/benchmarks.md#comparison-with-cuda)).
+The same optimizations are also available as an [OpenCL version](https://github.com/JohannesDav/vibefer/tree/opencl). On many of the GPUs and GFN sizes we tested, it is nearly as fast as this CUDA version. On others, the gap is larger ([comparison](https://github.com/JohannesDav/vibefer/blob/opencl/doc/benchmarks.md#comparison-with-cuda)).
 
 ## What changed
 
@@ -44,7 +48,7 @@ Every test still runs Gallot’s Gerbicz–Li error check. Two [optional checks]
 
 ## Building and running
 
-The easiest way to use this version is to download the zip for your system from the [latest release](https://github.com/JohannesDav/genefer22/releases/latest) and follow [installing a prebuilt release](doc/cuda.md#installing-a-prebuilt-release). You can also build it yourself: the [building and installing guide](doc/cuda.md) has step-by-step instructions for [Ubuntu](doc/cuda.md#step-by-step-on-ubuntu) and [Windows 11](doc/cuda.md#step-by-step-on-windows-11).
+The easiest way to use this version is to download the zip for your system from the [latest release](https://github.com/JohannesDav/vibefer/releases/latest) and follow [installing a prebuilt release](doc/cuda.md#installing-a-prebuilt-release). You can also build it yourself: the [building and installing guide](doc/cuda.md) has step-by-step instructions for [Ubuntu](doc/cuda.md#step-by-step-on-ubuntu) and [Windows 11](doc/cuda.md#step-by-step-on-windows-11).
 
 The executable, `geneferg`, takes the same options as Gallot’s GPU version, plus two optional check flags. For example, this tests 28000000<sup>2<sup>19</sup></sup> + 1 and writes the proof to `candidate.proof`:
 
@@ -59,4 +63,4 @@ PrimeGrid does not distribute this version, so using it for PrimeGrid work means
 Contributions are very welcome, for example:
 
 - **Settings for more NVIDIA GPUs.** If your card isn’t in the [list of calibrated GPUs](doc/calibrated-gpus.md), you can [calibrate it](doc/cuda.md#calibrating-another-gpu) and submit the resulting profile.
-- **Support for other GPUs.** AMD, Intel and Apple GPUs still run Gallot’s original code. The [OpenCL version](https://github.com/JohannesDav/genefer22/tree/opencl) is probably the easier place to start porting and testing the optimizations on them.
+- **Support for other GPUs.** AMD, Intel and Apple GPUs still run Gallot’s original code. The [OpenCL version](https://github.com/JohannesDav/vibefer/tree/opencl) is probably the easier place to start porting and testing the optimizations on them.
