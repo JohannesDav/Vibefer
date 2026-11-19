@@ -80,13 +80,10 @@ private:
 	bool _result(const std::string & str) const
 	{
 		FILE * const out_file = _open("results.txt", "a");
-		if (out_file == nullptr)
-		{
-			if (_isBoinc) throw std::runtime_error("Cannot write 'results.txt' file");
-			return false;
-		}
-		std::fprintf(out_file, "%s", str.c_str());
-		std::fclose(out_file);
+		if (out_file == nullptr) throw std::runtime_error("Cannot write 'results.txt' file");
+		const int written = std::fprintf(out_file, "%s", str.c_str());
+		const int closed = std::fclose(out_file);
+		if (written < 0 || closed != 0) throw std::runtime_error("Cannot write 'results.txt' file");
 		return true;
 	}
 
