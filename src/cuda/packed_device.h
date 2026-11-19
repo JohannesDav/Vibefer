@@ -80,8 +80,14 @@ class packed_device {
             program = nullptr;
             context = nullptr;
             size_t at = 0;
-            while ((at = binary.find("%envreg3", at)) != std::string::npos)
+            while ((at = binary.find("%envreg3", at)) != std::string::npos) {
+                if (at + 8 < binary.size() && binary[at + 8] >= '0' && binary[at + 8] <= '9') {
+                    at += 8;
+                    continue;
+                }
                 binary.replace(at, 8, "0");
+                ++at;
+            }
             if (binary.find("%envreg") != std::string::npos ||
                 binary.find(".entry ") == std::string::npos)
                 throw std::runtime_error("Unsupported packed PTX");
