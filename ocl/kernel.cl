@@ -2283,11 +2283,9 @@ INLINE uint_32 barrett(const uint_64 a, const uint_32 b, const uint_32 b_inv, co
 	return r - (o ? b : 0);
 }
 
-INLINE int_32 reduce64(int_64 * f, const uint_32 b, const uint_32 b_inv, const int b_s)
+INLINE int_32 reduce64_magnitude(const uint_64 t, const bool s, int_64 * f,
+	const uint_32 b, const uint_32 b_inv, const int b_s)
 {
-	// 1- t < 2^63 => t_h < 2^34. We must have t_h < 2^29 b => b > 32
-	// 2- t < 2^23 b^2 => t_h < b^2 / 2^6. If 2 <= b < 32 then t_h < 32^2 / 2^6 = 16 < 2^29 b
-	const uint_64 t = abs(*f);
 	const uint_64 t_h = t >> 29;
 	const uint_32 t_l = (uint_32)(t) % (1u << 29);
 
@@ -2295,10 +2293,28 @@ INLINE int_32 reduce64(int_64 * f, const uint_32 b, const uint_32 b_inv, const i
 	uint_32 d_l, r_l = barrett(((uint_64)(r_h) << 29) | t_l, b, b_inv, b_s, &d_l);
 	const uint_64 d = ((uint_64)(d_h) << 29) | d_l;
 
-	const bool s = (*f < 0);
 	*f = s ? -(int_64)(d) : (int_64)(d);
 	return s ? -(int_32)(r_l) : (int_32)(r_l);
 }
+
+INLINE int_32 reduce64(int_64 * f, const uint_32 b, const uint_32 b_inv, const int b_s)
+{
+	return reduce64_magnitude(abs(*f), *f < 0, f, b, b_inv, b_s);
+}
+
+#if RNS_SZ == 2 && defined(IS32)
+INLINE int_32 reduce64_double(const int_64 l, int_64 * f, const uint_32 b, const uint_32 b_inv, const int b_s)
+{
+	// 2*abs(l) <= P1*P2-1, leaving room for the incoming carry in ulong.
+	// The unsigned two-prime tier has b > 64, so t >> 29 < 2^35 < b*2^29.
+	bool s = l < 0;
+	const uint_64 t = abs(l) << 1;
+	const int_64 c = s ? -*f : *f;
+	uint_64 u = t + (uint_64)c;
+	if (c < 0 && abs(c) > t) { u = -u; s = !s; }
+	return reduce64_magnitude(u, s, f, b, b_inv, b_s);
+}
+#endif
 
 INLINE int_32 reduce96(int96 * f, const uint_32 b, const uint_32 b_inv, const int b_s)
 {
@@ -2373,12 +2389,25 @@ INLINE int4_32 normalize_1(__global uint4_32 * restrict const zi, __global int_6
 #if RNS_SZ == 2
 
 	int4_64 l = (int4_64)(garner2(u1.s0, u2.s0), garner2(u1.s1, u2.s1), garner2(u1.s2, u2.s2), garner2(u1.s3, u2.s3));
+	int_64 f = 0;
+#if defined(IS32)
+	if (dup)
+	{
+		r.s0 = reduce64_double(l.s0, &f, b, b_inv, b_s);
+		r.s1 = reduce64_double(l.s1, &f, b, b_inv, b_s);
+		r.s2 = reduce64_double(l.s2, &f, b, b_inv, b_s);
+		r.s3 = reduce64_double(l.s3, &f, b, b_inv, b_s);
+	}
+	else
+#else
 	if (dup) l += l;
-
-	int_64 f = l.s0; r.s0 = reduce64(&f, b, b_inv, b_s);
-	f += l.s1; r.s1 = reduce64(&f, b, b_inv, b_s);
-	f += l.s2; r.s2 = reduce64(&f, b, b_inv, b_s);
-	f += l.s3; r.s3 = reduce64(&f, b, b_inv, b_s);
+#endif
+	{
+		f = l.s0; r.s0 = reduce64(&f, b, b_inv, b_s);
+		f += l.s1; r.s1 = reduce64(&f, b, b_inv, b_s);
+		f += l.s2; r.s2 = reduce64(&f, b, b_inv, b_s);
+		f += l.s3; r.s3 = reduce64(&f, b, b_inv, b_s);
+	}
 
 #else
 
