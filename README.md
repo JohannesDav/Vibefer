@@ -39,7 +39,7 @@ None of these changes trade accuracy for speed. Before using an optimization for
 
 The arithmetic stays exact, so each test gives the same result and writes the same proof file as the original version. The proof files also matched in every benchmark comparison.
 
-If a check fails, the program uses Gallot’s arithmetic instead. It also runs Gallot’s original code, unchanged, on non-NVIDIA GPUs, for GFN sizes outside 16–23, or if the optimized code cannot start.
+If a check fails, the program falls back to a version without the performance optimizations. It also uses that version on non-NVIDIA GPUs, for GFN sizes outside 16–23, or if the optimized code cannot start.
 
 Every test still runs Gallot’s Gerbicz–Li error check. Two [optional checks](doc/opencl.md#optional-extra-checks) can also verify the finished result with his original code.
 
