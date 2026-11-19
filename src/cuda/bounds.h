@@ -21,7 +21,7 @@ constexpr wide coefficient_bound(uint32_t base) {
     return 2 * wide(size) * digit_bound(base) * digit_bound(base);
 }
 constexpr wide carry_bound(uint32_t base) {
-    return ceil_div(coefficient_bound(base), base - 1);
+    return ceil_div(coefficient_bound(base), base - 1) + 1;
 }
 constexpr bool supported(uint32_t base) {
     if (base < minimum_base || base > maximum_base || base % 2 || !(base & (base-1)))
