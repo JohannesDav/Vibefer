@@ -160,7 +160,9 @@ private:
 		ss << "  -p                          full test: a proof is generated" << std::endl;
 		ss << "  -s                          server job: convert the proof into a certificate and a 64-bit key" << std::endl;
 		ss << "  -c                          check certificate: a 64-bit key is generated (must be identical to server key)" << std::endl;
+#if !defined(CYCLO)
 		ss << "  -e                          perform a deterministic test (Brillhart, Lehmer, Selfridge: Theorem 1)" << std::endl;
+#endif
 		ss << "  -h                          validate and bench your hardware" << std::endl;
 #if defined(GPU)
 		ss << "  -d <n> or --device <n>      set the device number (default 0)" << std::endl;
@@ -291,8 +293,12 @@ public:
 			}
 			if (arg.substr(0, 2) == "-e")
 			{
+#if defined(CYCLO)
+				throw std::runtime_error("-e is not supported by cyclo");
+#else
 				if (mode != genefer::EMode::None) throw std::runtime_error("-e used with an incompatible option (-q, -p, -s, -c, -h)");
 				mode = genefer::EMode::Prime;
+#endif
 			}
 			if (arg.substr(0, 2) == "-h")
 			{
@@ -333,15 +339,21 @@ public:
 				if (nt > 64) pio::error("number of threads > 64");
 				nthreads = size_t(std::max(1, std::min(nt, 64)));
 			}
-#if !defined(__aarch64__)
+#if !defined(__aarch64__) || defined(CYCLO)
 			if (arg.substr(0, 2) == "-x")
 			{
-				impl = ((arg == "-x") && (i + 1 < size)) ? args[++i] : arg.substr(2);
+				const std::string requested = ((arg == "-x") && (i + 1 < size)) ? args[++i] : arg.substr(2);
+#if defined(CYCLO)
+				if (requested == "i32") throw std::runtime_error("-x i32 is not supported by cyclo");
+#endif
+#if !defined(__aarch64__)
+				impl = requested;
 				if ((impl != "i32") && (impl != "sse2") && (impl != "sse4") && (impl != "avx") && (impl != "fma") && (impl != "512"))
 				{
 					pio::error("implementation is not valid");
 					impl = "";
 				}
+#endif
 			}
 #endif
 		}
