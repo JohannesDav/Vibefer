@@ -652,7 +652,7 @@ private:
 	// (Pietrzak-Li proof generation
 	// in: ckpt[i]
 	// out: proof file, proof key
-	EReturn PL(const int depth, const bool fast_checkpoints, double & proofTime, uint64_t & pkey)
+	EReturn PL(const int depth, const bool fast_checkpoints, double & proofTime, uint64_t & pkey, const bool expected_prp)
 	{
 		transform * const pTransform = _transform;
 		gint & gi = *_gi;
@@ -686,6 +686,9 @@ private:
 			gi.read(ckptFile);
 			ckptFile.check_crc32();
 		}
+		uint64_t res64 = 0, old64 = 0;
+		if (gi.isOne(res64, old64) != expected_prp)
+			throw std::runtime_error("Reported verdict disagrees with proof residue");
 		gi.write(proofFile);
 		// v1 = mu[0]^w[0]
 		const uint32_t q = gi.gethash32();
@@ -786,6 +789,10 @@ private:
 			gint & gi = *_gi;
 			_transform->getInt(gi);
 			isPrp = gi.isOne(res64, old64);
+			uint64_t checked_res64 = 0, checked_old64 = 0;
+			_transform->getInt(gi);
+			if (gi.isOne(checked_res64, checked_old64) != isPrp)
+				throw std::runtime_error("Final residue reads disagree on the reported verdict");
 		}
 		return GL(exponent, B_GL, validTime);
 	}
@@ -823,7 +830,7 @@ private:
 #endif
 		const EReturn rGL = GL(exponent, B_GL, validTime);
 		if (rGL != EReturn::Success) return rGL;
-		return PL(depth, fast_checkpoints, proofTime, pkey);
+		return PL(depth, fast_checkpoints, proofTime, pkey, isPrp);
 	}
 
 	static uint32_t rand32(const uint32_t rmin, const uint32_t rmax) { return (static_cast<uint32_t>(std::rand()) % (rmax - rmin)) + rmin; }
