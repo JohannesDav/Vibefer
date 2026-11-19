@@ -2295,11 +2295,9 @@ static const char * const src_ocl_kernel = \
 "	return r - (o ? b : 0);\n" \
 "}\n" \
 "\n" \
-"INLINE int_32 reduce64(int_64 * f, const uint_32 b, const uint_32 b_inv, const int b_s)\n" \
+"INLINE int_32 reduce64_magnitude(const uint_64 t, const bool s, int_64 * f,\n" \
+"	const uint_32 b, const uint_32 b_inv, const int b_s)\n" \
 "{\n" \
-"	// 1- t < 2^63 => t_h < 2^34. We must have t_h < 2^29 b => b > 32\n" \
-"	// 2- t < 2^23 b^2 => t_h < b^2 / 2^6. If 2 <= b < 32 then t_h < 32^2 / 2^6 = 16 < 2^29 b\n" \
-"	const uint_64 t = abs(*f);\n" \
 "	const uint_64 t_h = t >> 29;\n" \
 "	const uint_32 t_l = (uint_32)(t) % (1u << 29);\n" \
 "\n" \
@@ -2307,10 +2305,28 @@ static const char * const src_ocl_kernel = \
 "	uint_32 d_l, r_l = barrett(((uint_64)(r_h) << 29) | t_l, b, b_inv, b_s, &d_l);\n" \
 "	const uint_64 d = ((uint_64)(d_h) << 29) | d_l;\n" \
 "\n" \
-"	const bool s = (*f < 0);\n" \
 "	*f = s ? -(int_64)(d) : (int_64)(d);\n" \
 "	return s ? -(int_32)(r_l) : (int_32)(r_l);\n" \
 "}\n" \
+"\n" \
+"INLINE int_32 reduce64(int_64 * f, const uint_32 b, const uint_32 b_inv, const int b_s)\n" \
+"{\n" \
+"	return reduce64_magnitude(abs(*f), *f < 0, f, b, b_inv, b_s);\n" \
+"}\n" \
+"\n" \
+"#if RNS_SZ == 2 && defined(IS32)\n" \
+"INLINE int_32 reduce64_double(const int_64 l, int_64 * f, const uint_32 b, const uint_32 b_inv, const int b_s)\n" \
+"{\n" \
+"	// 2*abs(l) <= P1*P2-1, leaving room for the incoming carry in ulong.\n" \
+"	// The unsigned two-prime tier has b > 64, so t >> 29 < 2^35 < b*2^29.\n" \
+"	bool s = l < 0;\n" \
+"	const uint_64 t = abs(l) << 1;\n" \
+"	const int_64 c = s ? -*f : *f;\n" \
+"	uint_64 u = t + (uint_64)c;\n" \
+"	if (c < 0 && abs(c) > t) { u = -u; s = !s; }\n" \
+"	return reduce64_magnitude(u, s, f, b, b_inv, b_s);\n" \
+"}\n" \
+"#endif\n" \
 "\n" \
 "INLINE int_32 reduce96(int96 * f, const uint_32 b, const uint_32 b_inv, const int b_s)\n" \
 "{\n" \
@@ -2385,12 +2401,25 @@ static const char * const src_ocl_kernel = \
 "#if RNS_SZ == 2\n" \
 "\n" \
 "	int4_64 l = (int4_64)(garner2(u1.s0, u2.s0), garner2(u1.s1, u2.s1), garner2(u1.s2, u2.s2), garner2(u1.s3, u2.s3));\n" \
+"	int_64 f = 0;\n" \
+"#if defined(IS32)\n" \
+"	if (dup)\n" \
+"	{\n" \
+"		r.s0 = reduce64_double(l.s0, &f, b, b_inv, b_s);\n" \
+"		r.s1 = reduce64_double(l.s1, &f, b, b_inv, b_s);\n" \
+"		r.s2 = reduce64_double(l.s2, &f, b, b_inv, b_s);\n" \
+"		r.s3 = reduce64_double(l.s3, &f, b, b_inv, b_s);\n" \
+"	}\n" \
+"	else\n" \
+"#else\n" \
 "	if (dup) l += l;\n" \
-"\n" \
-"	int_64 f = l.s0; r.s0 = reduce64(&f, b, b_inv, b_s);\n" \
-"	f += l.s1; r.s1 = reduce64(&f, b, b_inv, b_s);\n" \
-"	f += l.s2; r.s2 = reduce64(&f, b, b_inv, b_s);\n" \
-"	f += l.s3; r.s3 = reduce64(&f, b, b_inv, b_s);\n" \
+"#endif\n" \
+"	{\n" \
+"		f = l.s0; r.s0 = reduce64(&f, b, b_inv, b_s);\n" \
+"		f += l.s1; r.s1 = reduce64(&f, b, b_inv, b_s);\n" \
+"		f += l.s2; r.s2 = reduce64(&f, b, b_inv, b_s);\n" \
+"		f += l.s3; r.s3 = reduce64(&f, b, b_inv, b_s);\n" \
+"	}\n" \
 "\n" \
 "#else\n" \
 "\n" \
