@@ -12,8 +12,8 @@ from math import isqrt
 from fractions import Fraction as F
 
 r = Path(__file__).resolve().parents[1]
-p = r / "runtime/packed_kernel.py"
-sp = importlib.util.spec_from_file_location("runtime", p)
+p = r / "tools/packed_parameters.py"
+sp = importlib.util.spec_from_file_location("packed_parameters", p)
 m = importlib.util.module_from_spec(sp)
 sp.loader.exec_module(m)
 if not __debug__:
