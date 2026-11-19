@@ -8,6 +8,7 @@ Please give feedback to the authors if improvement is realized. It is distribute
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
 #include <filesystem>
 #include <sstream>
 #include <iomanip>
@@ -286,77 +287,101 @@ private:
 		}
 	}
 
-	int _readContextPrime(const std::string & filename, uint32_t & k, int & i, double & elapsedTime, double & totalTime, std::vector<bool> & cond)
+	static constexpr int primeContextVersion =
+#if defined(GPU)
+		-2;
+#else
+		2;
+#endif
+	static constexpr uint32_t primeContextFamily =
+#if defined(CYCLO)
+		1;
+#else
+		0;
+#endif
+
+	int _readContextPrime(const std::string & filename, const uint32_t b, const int i0, const uint32_t a2,
+		uint32_t & k, int & i, double & elapsedTime, double & totalTime, std::vector<bool> & cond)
 	{
 		file contextFile(filename);
 		if (!contextFile.exists()) return -1;
 
-		int version = 0;
-		if (!contextFile.read(reinterpret_cast<char *>(&version), sizeof(version))) return -2;
-#if defined(GPU)
-		version = -version;
-#endif
-		if (version != 1) return -2;
-		if (!contextFile.read(reinterpret_cast<char *>(&k), sizeof(k))) return -2;
-		if (!contextFile.read(reinterpret_cast<char *>(&i), sizeof(i))) return -2;
-		if (!contextFile.read(reinterpret_cast<char *>(&elapsedTime), sizeof(elapsedTime))) return -2;
-		if (!contextFile.read(reinterpret_cast<char *>(&totalTime), sizeof(totalTime))) return -2;
-		int condSize; if (!contextFile.read(reinterpret_cast<char *>(&condSize), sizeof(condSize))) return -2;
-		for (size_t i = 0, size = static_cast<size_t>(condSize); i < size; ++i)
+		auto read = [&](auto & value) { return contextFile.read(reinterpret_cast<char *>(&value), sizeof(value)); };
+		int version, savedI, condSize;
+		uint32_t savedB, savedN, savedFamily, savedK;
+		double savedElapsed, savedTotal;
+		if (!read(version) || version != primeContextVersion) return -2;
+		if (!read(savedB) || !read(savedN) || !read(savedFamily)
+			|| savedB != b || savedN != _n || savedFamily != primeContextFamily) return -2;
+		if (!read(savedK) || !read(savedI) || savedK == 0 || savedK > INT32_MAX
+			|| savedI < 0 || savedI > i0 || savedK == a2) return -2;
+		const uint32_t root = uint32_t(std::lrint(std::sqrt(savedK)));
+		if (savedK > 1 && savedK == root * root) return -2;
+		if (!read(savedElapsed) || !read(savedTotal) || !read(condSize)
+			|| condSize < 0 || static_cast<size_t>(condSize) != cond.size()) return -2;
+
+		std::vector<bool> savedCond(cond.size());
+		for (size_t j = 0; j < savedCond.size(); ++j)
 		{
-			int ci; if (!contextFile.read(reinterpret_cast<char *>(&ci), sizeof(ci))) return -2;
-			cond[i] = (ci != 0);
+			int flag;
+			if (!read(flag) || (flag != 0 && flag != 1)) return -2;
+			savedCond[j] = (flag != 0);
 		}
-		if (!_transform->readContext(contextFile, 2)) return -2;
-		if (!contextFile.check_crc32()) return -2;
+
+		// Only register 0 is live across a checkpoint. The witness loop copies
+		// it to register 1 after finishing the exponentiation.
+		gint residue(size_t(1) << _n, b);
+		if (!contextFile.read(reinterpret_cast<char *>(residue.data()), residue.getSize() * sizeof(int32_t))
+			|| !contextFile.check_crc32()) return -2;
+		if (std::all_of(savedCond.begin(), savedCond.end(), [](bool flag) { return flag; })) return -2;
+		const bool minusOne = residue.data()[0] == -1;
+		for (size_t j = minusOne ? 1 : 0; j < residue.getSize(); ++j)
+		{
+			const int32_t digit = residue.data()[j];
+			if (minusOne ? digit != 0 : digit < 0 || static_cast<uint32_t>(digit) >= b) return -2;
+		}
+
+		_transform->setInt(residue);
+		k = savedK; i = savedI; elapsedTime = savedElapsed; totalTime = savedTotal;
+		cond.swap(savedCond);
 		return 0;
 	}
-	
-	bool readContextPrime(uint32_t & k, int & i, double & elapsedTime, double & totalTime, std::vector<bool> & cond)
+
+	bool readContextPrime(const uint32_t b, const int i0, const uint32_t a2, uint32_t & k, int & i,
+		double & elapsedTime, double & totalTime, std::vector<bool> & cond)
 	{
-		std::string ctxFile = contextFilename() + "p";
-		int error = _readContextPrime(ctxFile, k, i, elapsedTime, totalTime, cond);
-		if (error < -1)
+		const std::string ctxFile = contextFilename() + "p";
+		for (const std::string & filename : {ctxFile, ctxFile + ".old"})
 		{
-			std::ostringstream ss; ss << ctxFile << ": invalid context";
-			pio::error(ss.str());
+			const int error = _readContextPrime(filename, b, i0, a2, k, i, elapsedTime, totalTime, cond);
+			if (error == 0) return true;
+			if (error < -1) pio::error(filename + ": invalid context");
 		}
-		ctxFile += ".old";
-		if (error < 0)
-		{
-			error = _readContextPrime(ctxFile, k, i, elapsedTime, totalTime, cond);
-			if (error < -1)
-			{
-				std::ostringstream ss; ss << ctxFile << ": invalid context";
-				pio::error(ss.str());
-			}
-		}
-		return (error == 0);
+		std::fill(cond.begin(), cond.end(), false);
+		return false;
 	}
-	
-	void saveContextPrime(const uint32_t k, const int i, const double elapsedTime, const double totalTime, const std::vector<bool> & cond) const
+
+	void saveContextPrime(const uint32_t b, const uint32_t k, const int i,
+		const double elapsedTime, const double totalTime, const std::vector<bool> & cond) const
 	{
 		const std::string ctxFile = contextFilename() + "p", oldCtxFile = ctxFile + ".old", newCtxFile = ctxFile + ".new";
 
 		{
 			file contextFile(newCtxFile, "wb", false);
-			int version = 1;
-#if defined(GPU)
-			version = -version;
-#endif
-			if (!contextFile.write(reinterpret_cast<const char *>(&version), sizeof(version))) return;
-			if (!contextFile.write(reinterpret_cast<const char *>(&k), sizeof(k))) return;
-			if (!contextFile.write(reinterpret_cast<const char *>(&i), sizeof(i))) return;
-			if (!contextFile.write(reinterpret_cast<const char *>(&elapsedTime), sizeof(elapsedTime))) return;
-			if (!contextFile.write(reinterpret_cast<const char *>(&totalTime), sizeof(totalTime))) return;
+			if (!contextFile.exists()) return;
+			auto write = [&](const auto & value) { return contextFile.write(reinterpret_cast<const char *>(&value), sizeof(value)); };
 			const int condSize = static_cast<int>(cond.size());
-			if (!contextFile.write(reinterpret_cast<const char *>(&condSize), sizeof(condSize))) return;
-			for (const bool c : cond)
+			if (!write(primeContextVersion) || !write(b) || !write(_n) || !write(primeContextFamily)
+				|| !write(k) || !write(i) || !write(elapsedTime) || !write(totalTime) || !write(condSize)) return;
+			for (const bool flag : cond)
 			{
-				const int ci = c ? 1 : 0;
-				if (!contextFile.write(reinterpret_cast<const char *>(&ci), sizeof(ci))) return;
+				const int ci = flag ? 1 : 0;
+				if (!write(ci)) return;
 			}
-			_transform->saveContext(contextFile, 2);
+			gint residue(size_t(1) << _n, b);
+			_transform->getInt(residue);
+			residue.unbalance();
+			if (!contextFile.write(reinterpret_cast<const char *>(residue.data()), residue.getSize() * sizeof(int32_t))) return;
 			contextFile.write_crc32();
 		}
 
@@ -1143,18 +1168,6 @@ private:
 		const std::vector<uint32_t> pfb = primeFactors(b);
 		std::vector<bool> cond(pfb.size(), false);
 
-		uint32_t rk = 1; int ri = 0; double restoredTime = 0, totalTime = 0;
-		bool found = readContextPrime(rk, ri, restoredTime, totalTime, cond);
-		if (!found)
-		{
-			rk = 1; ri = 0; restoredTime = 0; totalTime = 0;
-		}
-		else
-		{
-			std::ostringstream ss; ss << "Resuming from a checkpoint." << std::endl;
-			pio::print(ss.str());
-		}
-
 		mpz_t exponent; mpz_init(exponent);
 		mpz_ui_pow_ui(exponent, b, (static_cast<unsigned long int>(1) << n) - 1);
 		const int i0 = static_cast<int>(mpz_sizeinbase(exponent, 2) - 1);
@@ -1163,6 +1176,10 @@ private:
 		// b^N + 1 = 1 (mod 4) then if a is odd we have (a / (b^N + 1)) = ((b^N + 1) / a)
 		uint32_t a2 = 3;
 		while (kronecker((powmod(b % a2, static_cast<uint32_t>(1) << n, a2) + 1) % a2, a2) != -1) a2 += 2;
+
+		uint32_t rk = 1; int ri = 0; double restoredTime = 0, totalTime = 0;
+		bool found = readContextPrime(b, i0, a2, rk, ri, restoredTime, totalTime, cond);
+		if (found) pio::print("Resuming from a checkpoint.\n");
 
 		// J. Brillhart, D. H. Lehmer and J. L. Selfridge, "New primality criteria and factorizations of 2^m +/- 1", Math. Comp., 29 (1975) 620-647.
 		// Theorem 1.
@@ -1189,7 +1206,7 @@ private:
 			{
 				if (quitting())
 				{
-					saveContextPrime(k, i, chrono.getElapsedTime(), totalTime, cond);
+					saveContextPrime(b, k, i, chrono.getElapsedTime(), totalTime, cond);
 					mpz_clear(exponent);
 					return EReturn::Aborted;
 				}
@@ -1198,7 +1215,7 @@ private:
 				{
 					const double elapsedTime = chrono.getElapsedTime(), displayTime = chrono.getDisplayTime();
 					if (displayTime >= 10) { dcount = printProgress(elapsedTime, displayTime, i); chrono.resetDisplayTime(); }
-					if (chrono.getRecordTime() > 600) { saveContextPrime(k, i, chrono.getElapsedTime(), totalTime, cond); chrono.resetRecordTime(); }
+					if (chrono.getRecordTime() > 600) { saveContextPrime(b, k, i, chrono.getElapsedTime(), totalTime, cond); chrono.resetRecordTime(); }
 				}
 
 				pTransform->squareMul((mpz_tstbit(exponent, mp_bitcnt_t(i)) != 0) ? int32_t(a) : 1);
@@ -1586,7 +1603,9 @@ public:
 			if (success == EReturn::Success)
 			{
 				pio::result(ss.str());
-				clearContext();
+				const std::string ctxFile = contextFilename() + "p";
+				std::remove(ctxFile.c_str());
+				std::remove((ctxFile + ".old").c_str());
 			}
 		}
 		else

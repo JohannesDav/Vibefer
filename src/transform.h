@@ -190,11 +190,13 @@ public:
 			pTransform = transform::create_sse2(b, n, num_threads, num_regs, checkError);
 			ttype = "sse2";
 		}
+#if !defined(CYCLO)
 		else if (__builtin_cpu_supports("avx2") && (impl.empty() || (impl == "i32")))
 		{
 			pTransform = transform::create_i32(b, n, num_regs);
 			ttype = "i32";
 		}
+#endif
 		else
 		{
 			if (impl.empty()) throw std::runtime_error("processor must support sse2");
@@ -235,7 +237,9 @@ public:
 		if (__builtin_cpu_supports("avx")) impls += " avx";
 		if (__builtin_cpu_supports("sse4.1")) impls += " sse4";
 		if (__builtin_cpu_supports("sse2")) impls += " sse2";
+#if !defined(CYCLO)
 		if (__builtin_cpu_supports("avx2")) impls += " i32";
+#endif
 #endif
 #endif
 		return impls;

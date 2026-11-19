@@ -106,7 +106,7 @@ public:
 	bool read(char * const ptr, const size_t size)
 	{
 		const size_t ret = std::fread(ptr , sizeof(char), size, _cFile);
-		_crc32 = rc_crc32(_crc32, ptr, size);
+		_crc32 = rc_crc32(_crc32, ptr, ret);
 		if (ret == size * sizeof(char)) return true;
 		error("failure of a read operation");
 		return false;
@@ -154,7 +154,7 @@ public:
 	bool check_crc32()
 	{
 		uint32_t crc32 = 0, ocrc32 = ~_crc32 ^ 0xa23777ac;	// before the read operation
-		read(reinterpret_cast<char *>(&crc32), sizeof(crc32));
+		if (!read(reinterpret_cast<char *>(&crc32), sizeof(crc32))) return false;
 		const bool success = (crc32 == ocrc32);
 		if (!success) error("bad file (crc32)");
 		return success;
