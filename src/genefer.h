@@ -1251,6 +1251,11 @@ private:
 					_transform->getInt(gi);
 					if (!gi.isOne(res64, old64))
 					{
+						gint checked(gi.getSize(), b);
+						_transform->getInt(checked);
+						checked.unbalance();
+						if (!std::equal(gi.data(), gi.data() + gi.getSize(), checked.data()))
+							throw std::runtime_error("Witness residue reads disagree before reporting composite");
 						isComposite = true;
 						std::ostringstream ss; ss << a << "^{N - 1} != 1." << std::endl;
 						clearline(); pio::print(ss.str()); pio::result(ss.str());
