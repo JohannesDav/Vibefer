@@ -38,7 +38,7 @@ jobs:
             git make curl unzip mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-python mingw-w64-ucrt-x86_64-gmp
             mingw-w64-ucrt-x86_64-opencl-headers mingw-w64-ucrt-x86_64-opencl-icd
-      - name: Run the three CPU checks
+      - name: Run CPU and kernel checks
         run: |
           python3 .github/scripts/test-release-files.py
           bash .github/scripts/cpu-checks.sh
@@ -75,7 +75,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Run the three CPU checks
+      - name: Run CPU and kernel checks
         run: |
           python3 .github/scripts/test-release-files.py
           bash .github/scripts/cpu-checks.sh
@@ -91,3 +91,29 @@ jobs:
           path: dist/*.zip
           if-no-files-found: error
           retention-days: 14
+
+  linux-runtime:
+    name: Linux runtime checks
+    needs: linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-linux
+          path: dist
+      - name: Install CPU and OpenCL test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends g++ make python3 libgmp-dev \
+            ocl-icd-opencl-dev pocl-opencl-icd unzip
+      - name: Test the packaged Linux executable
+        run: |
+          unzip -q dist/*.zip -d "$RUNNER_TEMP/vibefer"
+          bash .github/scripts/runtime-checks-linux.sh "$RUNNER_TEMP/vibefer/geneferg"
