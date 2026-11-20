@@ -9,11 +9,23 @@ import stat
 import tempfile
 import unittest
 from unittest.mock import patch
+from xml.etree import ElementTree
 import zipfile
 
 spec = importlib.util.spec_from_file_location("release_files", Path(__file__).with_name("release-files.py"))
 release = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(release)
+ROOT = Path(__file__).resolve().parents[2]
+APP_PLANS = {
+    "genefer16": "OCLcudaGFN16",
+    "genefer17mega": "OCLcudaGFN17MEGA",
+    "genefer18": "OCLcudaGFN18",
+    "genefer19": "OCLcudaGFN19",
+    "genefer20": "OCLcudaGFN20",
+    "genefer": "OCLcudaGFN",
+    "genefer_wr": "OCLcudaGFNWR",
+    "genefer_extreme": "OCLcudaGFNEXTREME",
+}
 
 
 class ReleaseChecks(unittest.TestCase):
@@ -45,6 +57,8 @@ class ReleaseChecks(unittest.TestCase):
 
     def test_archives_and_checksums(self):
         original = Path.cwd()
+        templates = {name: (ROOT / "doc" / name).read_bytes()
+                     for name in ("boinc-app_info.xml", "boinc-app_info-windows.xml")}
         with tempfile.TemporaryDirectory() as directory:
             try:
                 os.chdir(directory)
@@ -52,9 +66,8 @@ class ReleaseChecks(unittest.TestCase):
                 Path("doc").mkdir()
                 for name in ["geneferg", "geneferg.exe"]:
                     Path("build", name).write_bytes(b"test executable")
-                for name in ["boinc-app_info.xml", "boinc-app_info-windows.xml"]:
-                    Path("doc", name).write_bytes(
-                        b"<app_info/>\r\n" if "windows" in name else b"<app_info/>\n")
+                for name, contents in templates.items():
+                    Path("doc", name).write_bytes(contents)
                 env = dict(GENEFER_VARIANT="opencl", GITHUB_REF="refs/tags/v1.2.3",
                            GITHUB_SHA="a" * 40, GITHUB_REPOSITORY="example/genefer22", GITHUB_RUN_ID="123")
                 with patch.dict(os.environ, env), patch.object(release, "inspect_binary"), contextlib.redirect_stdout(io.StringIO()):
@@ -66,8 +79,10 @@ class ReleaseChecks(unittest.TestCase):
                     with zipfile.ZipFile(path) as archive:
                         self.assertEqual(set(archive.namelist()), {name, "app_info.xml"})
                         self.assertEqual(stat.S_IMODE(archive.getinfo(name).external_attr >> 16), 0o755)
-                        expected_xml = b"<app_info/>\r\n" if platform == "windows" else b"<app_info/>\n"
-                        self.assertEqual(archive.read("app_info.xml"), expected_xml)
+                        template = "boinc-app_info-windows.xml" if platform == "windows" else "boinc-app_info.xml"
+                        xml = archive.read("app_info.xml")
+                        self.assertEqual(xml, templates[template])
+                        self.check_app_info(xml, platform, name)
                 self.assertEqual(len(Path("dist/SHA256SUMS").read_text().splitlines()), 2)
                 self.assertEqual(
                     Path("release-notes.md").read_text(encoding="utf-8").split("\n\n")[0],
@@ -77,6 +92,28 @@ class ReleaseChecks(unittest.TestCase):
                 )
             finally:
                 os.chdir(original)
+
+    def check_app_info(self, xml, platform, executable):
+        root = ElementTree.fromstring(xml)
+        self.assertEqual(root.tag, "app_info")
+        declaration, = root.findall("file_info")
+        self.assertEqual(declaration.findtext("name"), executable)
+        self.assertIsNotNone(declaration.find("executable"))
+        self.assertCountEqual([app.findtext("name") for app in root.findall("app")], APP_PLANS)
+        versions = root.findall("app_version")
+        self.assertCountEqual([version.findtext("app_name") for version in versions], APP_PLANS)
+        for version in versions:
+            app = version.findtext("app_name")
+            with self.subTest(platform=platform, app=app):
+                self.assertEqual(version.findtext("plan_class"), APP_PLANS[app])
+                expected_platform = "windows_x86_64" if platform == "windows" else "x86_64-pc-linux-gnu"
+                self.assertEqual(version.findtext("platform"), expected_platform)
+                self.assertIn("-boinc", version.findtext("cmdline", "").split())
+                self.assertEqual(version.findtext("coproc/type"), "NVIDIA")
+                self.assertEqual(float(version.findtext("coproc/count")), 1)
+                reference, = version.findall("file_ref")
+                self.assertEqual(reference.findtext("file_name"), executable)
+                self.assertIsNotNone(reference.find("main_program"))
 
 
 if __name__ == "__main__":

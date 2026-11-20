@@ -3,6 +3,7 @@ set -euo pipefail
 
 backend=cuda
 if [[ "$GENEFER_VARIANT" == opencl ]]; then backend=gpu; fi
+python3 tests/embedded_opencl.py
 mkdir -p build/tests
 python3 "tools/embed_${backend}_kernels.py" "build/tests/generated/${backend}/embedded_kernels.h"
 g++ -std=c++17 -O2 -Isrc "tests/${backend}_parameters_probe.cpp" -lgmp -o build/tests/parameters

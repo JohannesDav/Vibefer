@@ -263,17 +263,22 @@ Before publishing performance figures for a new profile, compare complete runs a
 
 ## Tests
 
-Three checks run on the CPU, without a GPU. They need the GMP development files. The first compares the C++ bound calculations with an independent Python implementation. The second checks profile selection for known GPU models, memory variants and unfamiliar GPUs. The third checks packed conversion bounds at the two-prime base limits. From the repository root:
+The CPU checks run without a GPU and need the GMP development files. They check the arithmetic bounds, the profile selection and the embedded copy of Gallot’s OpenCL kernel. From the repository root:
 
 ```sh
-mkdir -p build/tests
-python3 tools/embed_cuda_kernels.py build/tests/generated/cuda/embedded_kernels.h
-g++ -std=c++17 -O2 -Isrc tests/cuda_parameters_probe.cpp -lgmp -o build/tests/parameters
-python3 tests/test_cuda_parameters.py build/tests/parameters
-g++ -std=c++17 -O2 -Isrc -Ibuild/tests/generated tests/cuda_profiles.cpp src/cuda/profiles.cpp -lgmp -o build/tests/profiles
-./build/tests/profiles
-g++ -std=c++17 -O2 -Isrc -Ibuild/tests/generated tests/cuda_handoff.cpp src/cuda/kernel.cpp -lgmp -o build/tests/handoff
-./build/tests/handoff
+GENEFER_VARIANT=cuda bash .github/scripts/cpu-checks.sh
 ```
 
-The other tests in `tests/` need an NVIDIA GPU. They compare the arithmetic with GMP, check that a saved test can be resumed by either the optimized or the original code, and check that complete runs produce the same proof files as Gallot’s version. The BOINC tests use the real BOINC API with a simulated client. They cover saving and resuming, suspending, quitting, aborting, losing contact with the client, renamed executables and BOINC’s file links.
+The runtime checks test a built Linux executable using PoCL, an OpenCL implementation that runs on the CPU, so they also don't need a GPU. They include small known primes and composites, and several error cases. On Ubuntu 24.04 x86-64, they need `g++ make python3 libgmp-dev ocl-icd-opencl-dev pocl-opencl-icd`:
+
+```sh
+bash .github/scripts/runtime-checks-linux.sh build/geneferg
+```
+
+Both run automatically for every release.
+
+The tests for the optimized GPU paths need an NVIDIA GPU and are run manually. They compare the arithmetic with GMP and the proof files with the original code, and test resuming and BOINC behavior. For example, `tests/known_primes.py` runs a proven prime and a composite through the optimized arithmetic:
+
+```sh
+python3 tests/known_primes.py --executable build/geneferg --output known-primes
+```

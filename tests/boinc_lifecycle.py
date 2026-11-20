@@ -66,16 +66,21 @@ def main():
             episode.process.kill()
             episode.process.wait()
     assert episodes[-1]["returncode"] == 0
-    assert (slot / "gproof.ctx").is_file()
+    checkpoint = slot / "gproof.ctx"
+    assert checkpoint.is_file()
     assert not (public / "result.out").exists()
     assert not (slot / "boinc_finish_called").exists()
     print("Checkpoint, suspend and quit passed", flush=True)
 
+    # Rotate the valid checkpoint, then simulate an interrupted write.
+    checkpoint.replace(slot / "gproof.ctx.old")
+    checkpoint.write_bytes(b"\0")
     episode = launch("resume-proof")
     episodes.append(finish(episode, 1200))
     assert episodes[-1]["returncode"] == 0
     assert (slot / "boinc_finish_called").read_text().strip() == "0"
     stderr = (slot / "stderr.txt").read_text()
+    assert "gproof.ctx: invalid context" in stderr
     assert "Resuming from a checkpoint." in stderr
     assert "Extra tail recomputation passed" in stderr
     assert "Extra certificate verification passed" in stderr
@@ -84,6 +89,7 @@ def main():
         == "f2baad1af5c6e3a484eff198e3d5d8754dbd2c40872928a7731953de994a5edd"
     )
     assert "pkey = AF7EFC0A8E5E7735" in (public / "result.out").read_text()
+    print("Recovered from backup checkpoint and verified the proof", flush=True)
     for name, text in originals.items():
         assert (slot / name).read_text() == text
     # Process control must never publish a successful task result.
