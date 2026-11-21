@@ -349,8 +349,9 @@ public:
 #if defined(ocl_debug)
 			ssd << std::endl << computeUnits << " compUnits @ " << maxClockFrequency << "MHz, mem=" << (memSize >> 20) << "MB, cache="
 			 	<< (memCacheSize >> 10) << "kB, cacheLine=" << memCacheLineSize << "B, localMem=" << (_localMemSize >> 10)
-			 	<< "kB, constMem=" << (memConstSize >> 10) << "kB, maxWorkGroup=" << _maxWorkGroupSize << ".";
+				<< "kB, constMem=" << (memConstSize >> 10) << "kB, maxWorkGroup=" << _maxWorkGroupSize;
 #endif
+			ssd << "." << std::endl;
 			pio::print(ssd.str());
 		}
 

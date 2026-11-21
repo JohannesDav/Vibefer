@@ -26,7 +26,7 @@ def main():
     output.mkdir()
     env = {k: v for k, v in os.environ.items()
            if not k.startswith(('GFN_', 'GENEFER_'))}
-    optimized = re.compile(r'^(CUDA|OpenCL) profile: .+ \((packed|three primes)\)$', re.M)
+    optimized = re.compile(r'^(CUDA|OpenCL) profile: .+ \((packed|three primes)\)(.*)$', re.M)
     checks = []
     proofs = {}
     cases = [
@@ -62,6 +62,7 @@ def main():
             assert backend is None, (label, 'Reference unexpectedly used optimized arithmetic')
         else:
             assert backend is not None, (label, 'Did not exercise optimized GPU arithmetic', text)
+            assert re.fullmatch(r', data size: \S+/\S+ MB\.', backend.group(3)), (label, backend.group(0))
         if extra_checks:
             assert 'Extra certificate verification passed' in text, label
             assert 'Extra tail recomputation passed' in text, label

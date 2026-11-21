@@ -63,7 +63,7 @@ transform *make_optimized(uint32_t b,uint32_t n,bool boinc,size_t device,size_t 
 	return new packed_transform<3,true>(b,n,boinc,device,registers,platform_id,gpu,verbose,source);
 }
 transform *make_automatic(uint32_t b,uint32_t n,bool boinc,size_t device,size_t registers,
-						  cl_platform_id platform_id,cl_device_id boinc_gpu,bool verbose) {
+						  cl_platform_id platform_id,cl_device_id boinc_gpu,bool verbose, std::string &selected_profile) {
 	auto stock=[&] { return create_original_opencl(b,n,boinc,device,registers,platform_id,boinc_gpu,verbose); };
 	if(n<16 || n>23 || std::getenv("GENEFER_FORCE_OPENCL")) return stock();
 	cl_device_id gpu=boinc_gpu;
@@ -83,18 +83,18 @@ transform *make_automatic(uint32_t b,uint32_t n,bool boinc,size_t device,size_t 
 			return stock();
 		for(const auto *profile:gpu_gfn::profiles_for(info,n,b)) {
 			if(profile->kind==gpu_gfn::implementation::original_opencl) {
-				if(verbose) pio::print(std::string("GPU profile: ")+profile->name+" (original OpenCL)\n");
+				if(verbose) selected_profile = std::string("GPU profile: ")+profile->name+" (original OpenCL)";
 				return stock();
 			}
 			if(profile->kind==gpu_gfn::implementation::original_optimized) {
-				if(verbose) pio::print(std::string("GPU profile: ")+profile->name+" (original OpenCL arithmetic)\n");
+				if(verbose) selected_profile = std::string("GPU profile: ")+profile->name+" (original OpenCL arithmetic)";
 				return make_optimized(b,n,boinc,device,registers,platform_id,boinc_gpu,verbose);
 			}
 			if(profile->kind==gpu_gfn::implementation::three_prime) {
 				if(info.max_threads<1024 || info.local_memory_bytes<49152) continue;
 				if(auto *value=create_general_small3(b,n,boinc,device,registers,platform_id,boinc_gpu,
 													 verbose,profile->plan.root_bits,gpu_gfn::embedded::three_prime)) {
-					if(verbose) pio::print(std::string("OpenCL profile: ")+profile->name+" (three primes)\n");
+					if(verbose) selected_profile = std::string("OpenCL profile: ")+profile->name+" (three primes)";
 					return value;
 				}
 				continue;
@@ -103,13 +103,14 @@ transform *make_automatic(uint32_t b,uint32_t n,bool boinc,size_t device,size_t 
 			try { kernel=gpu_gfn::generate_kernel(b,n,profile->plan); }
 			catch(const std::invalid_argument &) { continue; }
 			if(!gpu_gfn::resources_fit(info,profile->plan,kernel.fields)) continue;
-			if(verbose) pio::print(std::string("OpenCL profile: ")+profile->name+" (packed)\n");
+			if(verbose) selected_profile = std::string("OpenCL profile: ")+profile->name+" (packed)";
 			return make_optimized(b,n,boinc,device,registers,platform_id,boinc_gpu,verbose,
 							 kernel.source);
 		}
 		if(verbose) pio::print("OpenCL: original arithmetic\n");
 		return make_optimized(b,n,boinc,device,registers,platform_id,boinc_gpu,verbose);
 	} catch(const std::exception &error) {
+		selected_profile.clear();
 		if(verbose) pio::print(std::string("OpenCL initialization unavailable; using original OpenCL: ")+error.what()+"\n");
 		return stock();
 	}
@@ -132,10 +133,13 @@ transform *transform::create_original_gpu(uint32_t b,uint32_t n,bool boinc,size_
 // }
 
 transform * transform::create_ocl(const uint32_t b, const uint32_t n, const bool isBoinc, const size_t device, const size_t num_regs,
-								  const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose)
+								  const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose,
+								  std::string & profile)
 {
 #if defined(GENEFER_AUTOMATIC_OPENCL)
-	return make_automatic(b,n,isBoinc,device,num_regs,boinc_platform_id,boinc_device_id,verbose);
+	return make_automatic(b,n,isBoinc,device,num_regs,boinc_platform_id,boinc_device_id,verbose,profile);
+#else
+	(void)profile;
 #endif
 	// NTT limits
 	// for (int m = 11; m <= 23; ++m)

@@ -12,6 +12,7 @@ concurrency:
 
 env:
   GENEFER_VARIANT: opencl
+  VIBEFER_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
   # BOINC client_release/8.2/8.2.9; verify the tag before compiling it.
   BOINC_COMMIT: d56d870a5e7dad6c9f1a8c3b1075f11844b87ca2
 

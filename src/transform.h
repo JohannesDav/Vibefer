@@ -78,7 +78,8 @@ public:
 private:
 #if defined(GPU)
 	static transform * create_ocl(const uint32_t b, const uint32_t n, const bool isBoinc, const size_t device, const size_t num_regs,
-								  const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose);
+								  const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose,
+								  std::string & profile);
 #elif defined(__aarch64__)
 	static transform * create_neon(const uint32_t b, const uint32_t n, const size_t num_threads, const size_t num_regs, const bool checkError);
 #if !defined(__APPLE__)
@@ -120,10 +121,14 @@ public:
 	// ordinary arithmetic and checkpoint representation.
 	unsigned getOrdinaryPrimeCount() const { return _kind == EKind::NTT2 ? 2 : 3; }
 	static transform * create_gpu(const uint32_t b, const uint32_t n, const bool isBoinc, const size_t device, const size_t num_regs,
-								  const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose)
+								  const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose,
+								  std::string * const profile = nullptr)
 	{
-		transform * const pTransform = transform::create_ocl(b, n, isBoinc, device, num_regs, boinc_platform_id, boinc_device_id, verbose);
+		std::string selected_profile;
+		transform * const pTransform = transform::create_ocl(b, n, isBoinc, device, num_regs, boinc_platform_id, boinc_device_id, verbose, selected_profile);
 		if (pTransform == nullptr) throw std::runtime_error("OpenCL device not found");
+		if (profile != nullptr) profile->swap(selected_profile);
+		else if (!selected_profile.empty()) pio::print(selected_profile + "\n");
 		return pTransform;
 	}
 #if defined(GENEFER_AUTOMATIC_OPENCL)
