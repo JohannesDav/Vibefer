@@ -32,6 +32,21 @@ def locate(candidates, description):
     )
 
 
+def build_version():
+    version = os.environ.get("VIBEFER_VERSION")
+    if not version:
+        try:
+            version = subprocess.check_output(
+                ["git", "describe", "--tags", "--match", "v[0-9]*", "--dirty"],
+                cwd=ROOT,
+                stderr=subprocess.DEVNULL,
+                text=True,
+            ).strip()
+        except (OSError, subprocess.CalledProcessError):
+            return "dev"
+    return (version[1:] if version.startswith("v") else version) or "dev"
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     executable = "geneferg.exe" if WINDOWS else "geneferg"
@@ -173,14 +188,15 @@ def main():
         stamp.update(path.read_bytes())
     stamp.update(json.dumps(compiler + common).encode())
     headers_hash = stamp.hexdigest()
+    version_flag = "-DVIBEFER_VERSION=" + json.dumps(build_version())
 
     def compile_source(name):
         source = ROOT / "src" / name
         obj = build / (name.replace("/", "-") + ".o")
         receipt = obj.with_suffix(".json")
-        identity = hashlib.sha256(
-            (headers_hash + hashlib.sha256(source.read_bytes()).hexdigest()).encode()
-        ).hexdigest()
+        flags = [version_flag] if name == "main.cpp" else []
+        source_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+        identity = hashlib.sha256((headers_hash + source_hash + "".join(flags)).encode()).hexdigest()
         if (
             obj.exists()
             and receipt.exists()
@@ -189,7 +205,7 @@ def main():
             return obj
         print("Building " + name, flush=True)
         subprocess.run(
-            compiler + common + ["-c", str(source), "-o", str(obj)], check=True
+            compiler + common + flags + ["-c", str(source), "-o", str(obj)], check=True
         )
         receipt.write_text(json.dumps(dict(identity=identity)) + "\n")
         return obj

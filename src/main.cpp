@@ -28,6 +28,10 @@ Please give feedback to the authors if improvement is realized. It is distribute
 #endif
 #include "genefer.h"
 
+#ifndef VIBEFER_VERSION
+#define VIBEFER_VERSION "dev"
+#endif
+
 class application
 {
 private:
@@ -104,24 +108,9 @@ private:
 		ssc << ", boinc-" << BOINC_VERSION_STRING;
 #endif
 
-		const char * const name = 
-#if defined(CYCLO)
-			"cyclo";
-#else
-			"genefer";
-#endif
-
-		const char * const ext =
-#if defined(GPU)
-			"g";
-#else
-			"";
-#endif
-
 		std::ostringstream ss;
-		ss << name << ext << " version 26.04.0 (" << sysver << ssc.str() << ")" << std::endl;
-		ss << "Copyright (c) 2022, Yves Gallot" << std::endl;
-		ss << name << " is free source code, under the MIT license." << std::endl;
+		ss << "Vibefer " << VIBEFER_VERSION << " (https://github.com/JohannesDav/Vibefer)" << std::endl;
+		ss << sysver << ssc.str() << std::endl;
 		if (nl)
 		{
 			ss << std::endl << "Command line: '";

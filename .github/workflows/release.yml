@@ -14,6 +14,7 @@ concurrency:
 
 env:
   GENEFER_VARIANT: cuda
+  VIBEFER_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
   # BOINC client_release/8.2/8.2.9; verify the tag before compiling it.
   BOINC_COMMIT: d56d870a5e7dad6c9f1a8c3b1075f11844b87ca2
 
@@ -170,4 +171,4 @@ jobs:
             gh release create "$TAG" --draft --verify-tag --target "$GITHUB_SHA" \
               --title "$TAG" --notes-file release-notes.md
           fi
-          gh release upload "$TAG" dist/*.zip dist/SHA256SUMS dist/provenance.sigstore.json --clobber
+          gh release upload "$TAG" dist/*.zip dist/SHA256SUMS LICENSE dist/provenance.sigstore.json --clobber

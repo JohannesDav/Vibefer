@@ -107,12 +107,17 @@ private:
 							const bool verbose = true, const bool full = true)
 	{
 		deleteTransform();
-		_transform = transform::create_gpu(b, n, _isBoinc, device, num_regs, _boinc_platform_id, _boinc_device_id, verbose);
-		if (verbose)
+		std::string profile;
+		_transform = transform::create_gpu(b, n, _isBoinc, device, num_regs, _boinc_platform_id, _boinc_device_id, verbose, &profile);
+		if (verbose && (full || !profile.empty()))
 		{
-			const size_t cache_size = _transform->getCacheSize(), mem_size = _transform->getMemSize();
-			std::ostringstream ss;
-			if (full) ss << ", data size: " << std::setprecision(3) << cache_size / (1024 * 1024.0) << "/" << mem_size / (1024 * 1024.0) << " MB";
+			std::ostringstream ss; ss << profile;
+			if (full)
+			{
+				const size_t cache_size = _transform->getCacheSize(), mem_size = _transform->getMemSize();
+				ss << (profile.empty() ? "Data size: " : ", data size: ") << std::setprecision(3)
+				   << cache_size / (1024 * 1024.0) << "/" << mem_size / (1024 * 1024.0) << " MB";
+			}
 			ss << "." << std::endl;
 			pio::print(ss.str());
 		}
