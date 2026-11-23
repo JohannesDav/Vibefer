@@ -642,13 +642,8 @@ protected:
 	{
 		if (!_profile)
 		{
-#if !defined(ocl_fast_exec) || defined(ocl_debug)
-			cl_int err =
-#endif
-			clEnqueueNDRangeKernel(_queue, kernel, 1, nullptr, &globalWorkSize, (localWorkSize == 0) ? nullptr : &localWorkSize, 0, nullptr, nullptr);
-#if !defined(ocl_fast_exec) || defined(ocl_debug)
-			oclFatal(err);
-#endif
+			oclFatal(clEnqueueNDRangeKernel(_queue, kernel, 1, nullptr, &globalWorkSize,
+				(localWorkSize == 0) ? nullptr : &localWorkSize, 0, nullptr, nullptr), "clEnqueueNDRangeKernel");
 			if (_isSync)
 			{
 				++_syncCount;
