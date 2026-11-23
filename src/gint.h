@@ -101,22 +101,26 @@ public:
 		}
 	}
 
-	void balance()
+	void balance(const int32_t scalar = 1)
 	{
-		if (_state == EState::Balanced) return;
+		if (_state == EState::Balanced && scalar == 1) return;
 		_state = EState::Balanced;
 
 		const size_t size = _size;
 		const int32_t base = static_cast<int32_t>(_base);
+		// Scaled residues can need either sign of the half-base digit at the wrap.
+		const int32_t lower = -base / 2 + (scalar == 1);
 		int32_t * const d = _d;
 
 		int64_t f = 0;
 		for (size_t i = 0; i < size; ++i)
 		{
-			f += d[i];
+			// A product of two int32_t values has magnitude at most 2^62.
+			// With b >= 1024 the balanced carry stays below 2^53, so the sum fits int64_t.
+			f += int64_t(scalar) * d[i];
 			int32_t r = static_cast<int32_t>(f % base);
 			if (r > base / 2) r -= base;
-			if (r <= -base / 2) r += base;
+			if (r < lower) r += base;
 			d[i] = r;
 			f -= r;
 			f /= base;
@@ -126,18 +130,18 @@ public:
 		{
 #if defined(CYCLO)
 			// f x^size = f x^{size/2} - f
-			const int32_t f32 = static_cast<int32_t>(f);
-			d[0] -= f32; d[size / 2] += f32;
-			f = 0;
-#else
-			f = -f;	// f * x^size = -f
+			const int64_t wrap = f;
 #endif
+			f = -f;
 			for (size_t i = 0; i < size; ++i)
 			{
+#if defined(CYCLO)
+				if (i == size / 2) f += wrap;
+#endif
 				f += d[i];
 				int32_t r = static_cast<int32_t>(f % base);
 				if (r > base / 2) r -= base;
-				if (r <= -base / 2) r += base;
+				if (r < lower) r += base;
 				d[i] = r;
 				f -= r;
 				f /= base;

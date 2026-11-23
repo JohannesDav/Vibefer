@@ -14,3 +14,5 @@ g++ -std=c++17 -O2 -Isrc -Ibuild/tests/generated "tests/${backend}_profiles.cpp"
 g++ -std=c++17 -O2 -Isrc -Ibuild/tests/generated "tests/${backend}_handoff.cpp" \
     "src/${backend}/kernel.cpp" -lgmp -o build/tests/handoff
 ./build/tests/handoff
+g++ -std=c++17 -O2 -Isrc tests/cpu_scalar.cpp -lgmp -o build/tests/cpu-scalar
+./build/tests/cpu-scalar

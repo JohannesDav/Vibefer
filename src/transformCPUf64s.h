@@ -864,7 +864,9 @@ public:
 	void squareMul(const int32_t a) override
 	{
 		const size_t num_threads = _num_threads;
-		_g = static_cast<double>(a);
+		// Only the squaring loop's usual multipliers use the floating-point carry.
+		const bool exact_scalar = a != 1 && a != 2;
+		_g = exact_scalar ? 1.0 : static_cast<double>(a);
 
 		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass1);
 		pass1(0); if (num_threads > 1) _parallel.wait();
@@ -874,6 +876,7 @@ public:
 		pass2_1(0); if (num_threads > 1) _parallel.wait();
 
 		error_update();
+		if (exact_scalar) multiplyScalarExactly(a);
 	}
 
 	void initMultiplicand(const size_t src) override
