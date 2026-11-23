@@ -25,6 +25,7 @@ def main():
     output.mkdir()
     command = [executable, "-n", "12", "-b", "1534", "-x", "i32", "-p", "-f", "candidate"]
     disk = ["--proof-storage=disk"]
+    ram = "Proof checkpoints: RAM (3 MiB)."
     checkpoint = "candidate.ctx"
     proof = "candidate.proof"
 
@@ -77,7 +78,7 @@ def main():
         return log.read_text()
 
     def after_start(work, log):
-        if "Proof checkpoints: host RAM (" not in log.read_text():
+        if ram not in log.read_text():
             return False
         time.sleep(0.5)
         assert not (work / checkpoint).exists()
@@ -97,7 +98,7 @@ def main():
         time.sleep(0.5)
         return True
 
-    assert "Proof checkpoints: disk (forced)." in run(output, "reference", disk)
+    assert "Proof checkpoints: disk (--proof-storage=disk)." in run(output, "reference", disk)
     expected = (output / proof).read_bytes()
     for label, stop, resume_args in (
         ("prp-to-disk", after_start, disk),
@@ -106,7 +107,7 @@ def main():
         work = output / label
         work.mkdir()
         text = run(work, "quit", stop=stop)
-        assert "Proof checkpoints: host RAM (" in text
+        assert ram in text
         assert "terminated." in text and not (work / "results.txt").exists()
         saved_context = (work / checkpoint).read_bytes()
         saved_bit = struct.unpack_from("=i", saved_context, 8)[0]

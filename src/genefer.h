@@ -1742,7 +1742,7 @@ public:
 			{
 				double testTime = 0, validTime = 0, proofTime = 0; bool isPrp = false; uint64_t pkey = 0, res64 = 0, old64 = 0;
 				const size_t points = size_t(1) << depth;
-				const std::string storage = _diskProofStorage ? "disk (forced)" :
+				const std::string storage = _diskProofStorage ? "disk (--proof-storage=disk)" :
 					_proofBuffer.allocate(_gi->getSize(), points + 2, _isBoinc);
 				pio::print("Proof checkpoints: " + storage + ".\n");
 				success = proof(exponent, depth, testTime, validTime, proofTime, isPrp, pkey, res64, old64);

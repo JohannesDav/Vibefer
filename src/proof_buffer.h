@@ -85,11 +85,16 @@ private:
 		return 0;
 	}
 
-	static std::string mib(const double bytes)
+	static std::string mib(const double bytes, const int precision = 1)
 	{
 		std::ostringstream out;
-		out << std::fixed << std::setprecision(1) << bytes / (1024 * 1024) << " MiB";
+		out << std::fixed << std::setprecision(precision) << bytes / (1024 * 1024) << " MiB";
 		return out.str();
+	}
+
+	static std::string insufficient_memory(const double needed, const double available)
+	{
+		return "disk (needs " + mib(needed, 0) + ", " + mib(available, 0) + " available)";
 	}
 
 #if defined(BOINC)
@@ -192,7 +197,7 @@ public:
 			return "disk (proof buffer too large)";
 		const size_t bytes = size * entries * sizeof(int32_t);
 		const double needed = double(bytes) + bytes / 3;
-		std::string detail;
+		double total_needed = needed;
 #if defined(BOINC)
 		if (is_boinc)
 		{
@@ -200,9 +205,8 @@ public:
 			const memory_share share = boinc_memory_share();
 			if (!share.tasks) return "disk (BOINC task memory budget unavailable)";
 			_initial_working_set = share.own;
-			const double total_needed = needed + share.own;
-			detail = "RAM mode needs " + mib(total_needed) + " with headroom; " + share.describe();
-			if (total_needed > share.allowance) return "disk (" + detail + ")";
+			total_needed += share.own;
+			if (total_needed > share.allowance) return insufficient_memory(total_needed, share.allowance);
 		}
 #else
 		(void)is_boinc;
@@ -211,9 +215,7 @@ public:
 		allocation_lock lock;
 		if (!lock.acquired()) return "disk (proof memory reservation unavailable)";
 		const uint64_t available = available_ram();
-		const std::string host = "buffer needs " + mib(needed) + " with headroom; host has " + mib(available) + " available";
-		if (needed > available) return "disk (" + host + ")";
-		if (detail.empty()) detail = host;
+		if (needed > available) return insufficient_memory(needed, available);
 
 		try
 		{
@@ -232,7 +234,7 @@ public:
 		for (size_t i = 0; i < size * points(); i += 1024) digits[i] = 0;
 		for (size_t i = 0; i < size * 2; i += 1024) completed[i] = 0;
 		_next_check = clock::now() + std::chrono::seconds(1);
-		return "host RAM (" + detail + ")";
+		return "RAM (" + mib(total_needed, 0) + ")";
 	}
 
 	bool active() const { return bool(_digits); }

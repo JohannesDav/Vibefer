@@ -14,7 +14,8 @@ import time
 from boinc_ipc import Episode, sha
 
 
-RAM = "Proof checkpoints: host RAM ("
+RAM = re.compile(r"^Proof checkpoints: RAM \((\d+) MiB\)\.$", re.M)
+DISK_MEMORY = re.compile(r"^Proof checkpoints: disk \(needs (\d+) MiB, (\d+) MiB available\)\.$", re.M)
 DISK = "Proof checkpoints: disk ("
 SPILL = "Memory pressure: switched proof checkpoints to disk ("
 PRESSURE = "<heartbeat/><wss>67108864</wss><max_wss>33554432</max_wss>"
@@ -51,8 +52,8 @@ def run_case(args, exponent, digest, quit_during_proof):
 
     episode = launch(args, slot, f"gfn{exponent}-pressure", exponent=exponent)
     try:
-        episode.wait(lambda: RAM in log(slot))
-        initially_needed = float(re.search(r"RAM mode needs ([\d.]+) MiB", log(slot))[1])
+        episode.wait(lambda: RAM.search(log(slot)))
+        initially_needed = int(RAM.search(log(slot))[1])
         if quit_during_proof:
             episode.wait(lambda: (slot / "gproof.proof").exists(), 1200)
             episode.control("<suspend/>")
@@ -107,7 +108,7 @@ def parallel_start(args, count, limit, storage):
         if count == 2:
             # Keep both tasks visible to the census while serializing RAM allocation.
             first = episodes[0]
-            first.wait(lambda: storage in log(first.slot))
+            first.wait(lambda: storage.search(log(first.slot)))
         for gate in gates[1:]:
             gate.touch()
         deadline = time.monotonic() + 120
@@ -118,8 +119,11 @@ def parallel_start(args, count, limit, storage):
         for episode in episodes:
             assert episode.finish(120)["returncode"] == 0
             text = log(episode.slot)
-            assert storage in text, text
-            assert f"per task across {count} tasks" in text, text
+            match = storage.search(text)
+            assert match, text
+            if storage is DISK_MEMORY:
+                needed, available = map(int, match.groups())
+                assert needed > available and available <= limit / count + 0.5, text
             assert SPILL not in text, text
             assert_proof(episode.slot)
     finally:
@@ -127,7 +131,7 @@ def parallel_start(args, count, limit, storage):
             if episode.process.poll() is None:
                 episode.process.kill()
                 episode.process.wait()
-    mode = "RAM" if storage == RAM else "disk"
+    mode = "RAM" if storage is RAM else "disk"
     print(f"PASS: {count} parallel tasks chose {mode} at {limit} MiB total", flush=True)
 
 
@@ -137,7 +141,7 @@ def added_peers(args, count, limit, peer_mib=0):
     episode = launch(args, slot, label, exponent=16, memory_limit_mib=limit)
     peers = []
     try:
-        episode.wait(lambda: RAM in log(slot))
+        episode.wait(lambda: RAM.search(log(slot)))
         for index in range(count - 1):
             ready = args.output / f"{label}-{index}.ready"
             process = subprocess.Popen([
@@ -190,10 +194,10 @@ def main():
     # for four tasks stays below the measured initial requirement.
     limit = math.ceil(needed * 3.4)
     parallel_start(args, 2, limit, RAM)
-    parallel_start(args, 4, limit, DISK)
+    parallel_start(args, 4, limit, DISK_MEMORY)
     added_peers(args, 4, limit)
     added_peers(args, 2, limit, math.ceil(limit - needed / 2))
-    disk_only(args, "forced-disk", "forced", memory_limit_mib=1, force_disk=True)
+    disk_only(args, "forced-disk", "--proof-storage=disk", memory_limit_mib=1, force_disk=True)
     disk_only(args, "unknown-budget", "BOINC task memory budget unavailable", client_pid=0)
     run_case(args, 19, "f2baad1af5c6e3a484eff198e3d5d8754dbd2c40872928a7731953de994a5edd",
              quit_during_proof=True)
