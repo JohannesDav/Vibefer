@@ -54,6 +54,14 @@ protected:
 	virtual void getZi(int32_t * const zi) const = 0;
 	virtual void setZi(const int32_t * const zi) = 0;
 
+	void multiplyScalarExactly(const int32_t scalar)
+	{
+		gint digits(size_t(1) << _n, _b);
+		getZi(digits.data());
+		digits.balance(scalar);
+		setZi(digits.data());
+	}
+
 public:
 	virtual void set(const uint32_t a) = 0;					// r_0 = a
 	virtual void squareDup(const bool dup) = 0;				// r_0 = r_0^2 or 2*r_0^2
