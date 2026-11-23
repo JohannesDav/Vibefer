@@ -2,10 +2,13 @@
 """Check host-RAM proof storage and recovery with a Linux CPU build."""
 
 import argparse
+import errno
 import fcntl
 import os
 from pathlib import Path
+import pty
 import resource
+import select
 import signal
 import struct
 import subprocess
@@ -20,7 +23,7 @@ def main():
     executable = args.executable.resolve()
     output = args.output.resolve()
     output.mkdir()
-    command = ["stdbuf", "-o0", executable, "-n", "12", "-b", "1534", "-x", "i32", "-p", "-f", "candidate"]
+    command = [executable, "-n", "12", "-b", "1534", "-x", "i32", "-p", "-f", "candidate"]
     disk = ["--proof-storage=disk"]
     checkpoint = "candidate.ctx"
     proof = "candidate.proof"
@@ -31,20 +34,42 @@ def main():
 
     def run(work, label, switches=(), stop=None, fail_save=False):
         log = work / (label + ".log")
-        with log.open("w") as stream:
+        argv = command + list(switches)
+        if stop is None:
+            with log.open("w") as stream:
+                proc = subprocess.run(argv, cwd=work, stdout=stream, stderr=subprocess.STDOUT, timeout=120)
+            assert proc.returncode == 0, log.read_text()
+            return log.read_text()
+
+        # A terminal flushes the status lines even for the statically linked CI build.
+        master, slave = pty.openpty()
+        with log.open("wb") as stream, os.fdopen(master, "rb", 0) as terminal, os.fdopen(slave, "wb", 0) as output:
             proc = subprocess.Popen(
-                command + list(switches), cwd=work, stdout=stream, stderr=subprocess.STDOUT,
+                argv, cwd=work, stdout=output, stderr=subprocess.STDOUT,
                 preexec_fn=limit_file_size if fail_save else None,
             )
+            output.close()
             try:
-                if stop:
-                    deadline = time.monotonic() + 60
-                    while not stop(work, log):
-                        assert proc.poll() is None, log.read_text()
-                        assert time.monotonic() < deadline, log.read_text()
-                        time.sleep(0.01)
-                    proc.terminate()
-                assert proc.wait(timeout=120) == int(fail_save), log.read_text()
+                sent_quit = False
+                deadline = time.monotonic() + 120
+                while True:
+                    assert time.monotonic() < deadline, log.read_text()
+                    if select.select([terminal], [], [], 0.01)[0]:
+                        try:
+                            chunk = terminal.read(4096)
+                        except OSError as error:
+                            if error.errno != errno.EIO:  # Linux closes the PTY this way.
+                                raise
+                            break
+                        if not chunk:
+                            break
+                        stream.write(chunk)
+                        stream.flush()
+                    if not sent_quit and stop(work, log):
+                        proc.terminate()
+                        sent_quit = True
+                assert sent_quit, log.read_text()
+                assert proc.wait(timeout=10) == int(fail_save), log.read_text()
             finally:
                 if proc.poll() is None:
                     proc.kill()

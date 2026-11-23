@@ -47,6 +47,8 @@ jobs:
           bash .github/scripts/cpu-checks.sh
       - name: Build with BOINC support
         run: bash .github/scripts/build-windows.sh
+      - name: Smoke-test the Windows executable
+        run: bash .github/scripts/check-banner.sh ./build/geneferg.exe
       - name: Check DLL dependencies and package
         run: python3 .github/scripts/release-files.py windows
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
