@@ -623,7 +623,24 @@ private:
 
 		int ri = 0; double restoredTime = 0;
 		bool legacyProof = false;
-		const bool found = readContext(0, ri, restoredTime, &legacyProof);
+		const int i0 = static_cast<int>(mpz_sizeinbase(exponent, 2) - 1);
+		bool found = readContext(0, ri, restoredTime, &legacyProof);
+		if (found && B_PL != 0)
+		{
+			if (legacyProof) restoreLegacyProofPoints(ri, B_PL);
+			// The context records the next bit to process. Only earlier points must exist.
+			for (int index = (ri < 0 ? 0 : ri / B_PL + 1); index <= i0 / B_PL; ++index)
+			{
+				const size_t point = static_cast<size_t>(index);
+				std::error_code error;
+				if (_proofBuffer.contains(point) ||
+					std::filesystem::is_regular_file(pio::resolve(ckptFilename(point).c_str()), error)) continue;
+				pio::print("Proof checkpoints are missing; restarting from the beginning.\n");
+				clearContext();
+				found = false;
+				break;
+			}
+		}
 		if (!found)
 		{
 			ri = 0; restoredTime = 0;
@@ -634,7 +651,6 @@ private:
 		{
 			std::ostringstream ss; ss << "Resuming from a checkpoint." << std::endl;
 			pio::print(ss.str());
-			if (legacyProof) restoreLegacyProofPoints(ri, B_PL);
 			if (ri == -1)
 			{
 				testTime = 0;
@@ -643,7 +659,7 @@ private:
 		}
 
 		watch chrono(found ? restoredTime : 0);
-		const int i0 = static_cast<int>(mpz_sizeinbase(exponent, 2) - 1), i_start = found ? ri : i0;
+		const int i_start = found ? ri : i0;
 		initPrintProgress(i0, i_start);
 		int dcount = 100;
 

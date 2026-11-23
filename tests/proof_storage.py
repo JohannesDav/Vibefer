@@ -23,7 +23,7 @@ def main():
     executable = args.executable.resolve()
     output = args.output.resolve()
     output.mkdir()
-    command = [executable, "-n", "12", "-b", "1534", "-x", "i32", "-p", "-f", "candidate"]
+    command = [executable, "-n", "12", "-b", "1534", "-x", "i32", "-f", "candidate"]
     disk = ["--proof-storage=disk"]
     ram = "Proof checkpoints: RAM (3 MiB)."
     checkpoint = "candidate.ctx"
@@ -33,9 +33,9 @@ def main():
         signal.signal(signal.SIGXFSZ, signal.SIG_IGN)
         resource.setrlimit(resource.RLIMIT_FSIZE, (4096, 4096))
 
-    def run(work, label, switches=(), stop=None, fail_save=False):
+    def run(work, label, switches=(), stop=None, fail_save=False, mode="-p"):
         log = work / (label + ".log")
-        argv = command + list(switches)
+        argv = command + [mode, *switches]
         if stop is None:
             with log.open("w") as stream:
                 proc = subprocess.run(argv, cwd=work, stdout=stream, stderr=subprocess.STDOUT, timeout=120)
@@ -134,6 +134,24 @@ def main():
         assert "Proof checkpoints: disk (proof memory reservation unavailable)." in run(work, "auto")
     assert (work / proof).read_bytes() == expected
     print("PASS automatic disk fallback", flush=True)
+
+    def after_quick_start(_work, log):
+        if "Using i32 implementation" not in log.read_text():
+            return False
+        time.sleep(0.5)
+        return True
+
+    work = output / "quick-to-proof"
+    work.mkdir()
+    text = run(work, "quick-quit", stop=after_quick_start, mode="-q")
+    assert "terminated." in text and not list(work.glob("*.ckpt"))
+    assert (work / checkpoint).is_file()
+    text = run(work, "proof-restart")
+    assert "Proof checkpoints are missing; restarting from the beginning." in text
+    assert "Resuming from a checkpoint." not in text
+    assert "is a probable prime" in (work / "results.txt").read_text()
+    assert (work / proof).read_bytes() == expected
+    print("PASS quick checkpoint restarts proof from the beginning", flush=True)
 
 
 if __name__ == "__main__":
