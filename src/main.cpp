@@ -147,6 +147,7 @@ private:
 		ss << "  -b <b>                      base of the GFN (1024 <= b <= 2000000000)" << std::endl;
 		ss << "  -q                          quick test" << std::endl;
 		ss << "  -p                          full test: a proof is generated" << std::endl;
+		ss << "  --proof-storage=disk        disable host RAM buffering of proof checkpoints" << std::endl;
 		ss << "  -s                          server job: convert the proof into a certificate and a 64-bit key" << std::endl;
 		ss << "  -c                          check certificate: a 64-bit key is generated (must be identical to server key)" << std::endl;
 #if !defined(CYCLO)
@@ -232,6 +233,7 @@ public:
 #endif
 		std::string mainFilename = "", impl = "";
 		const int depth = 7;
+		bool disk_proof_storage = false;
 
 		// parse args
 		for (size_t i = 0, size = args.size(); i < size; ++i)
@@ -241,6 +243,10 @@ public:
 			if(arg=="--check-certificate") check_certificate=true;
 			if(arg=="--check-tail") check_tail=true;
 #endif
+
+			if (arg == "--proof-storage=disk") disk_proof_storage = true;
+			else if (arg.rfind("--proof-storage", 0) == 0)
+				throw std::runtime_error("Expected --proof-storage=disk");
 
 			if ((arg.substr(0, 2) == "-b") && (arg.substr(0, 3) != "-bo"))
 			{
@@ -363,6 +369,7 @@ public:
 
 		genefer & g = genefer::getInstance();
 		g.setBoinc(bBoinc);
+		g.setDiskProofStorage(disk_proof_storage);
 #if defined(GPU)
 		g.setBoincParam(boinc_platform_id, boinc_device_id);
 #endif

@@ -8,7 +8,7 @@
 
 int main(int argc, char **argv)
 {
-    if (argc != 4 || chdir(argv[1]))
+    if ((argc != 4 && argc != 5) || chdir(argv[1]))
         return 2;
     APP_INIT_DATA aid;
     aid.major_version = 7;
@@ -40,6 +40,10 @@ int main(int argc, char **argv)
     aid.rsc_fpops_bound = 1e20;
     aid.rsc_memory_bound = 8e9;
     aid.rsc_disk_bound = 8e9;
+    const double memory_mib = argc == 5 ? std::atof(argv[4]) : 8192;
+    aid.host_info.m_nbytes = 2 * memory_mib * 1024 * 1024;
+    aid.global_prefs.ram_max_used_busy_frac = 0.5;
+    aid.global_prefs.ram_max_used_idle_frac = 0.9;
     void *memory = nullptr;
     if (create_shmem_mmap(MMAPPED_FILE_NAME, sizeof(SHARED_MEM), &memory))
         return 4;

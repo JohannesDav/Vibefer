@@ -176,6 +176,12 @@ Then shut down BOINC as in step 3, copy `build/geneferg.exe` into the PrimeGrid 
 
 Shut down BOINC as in step 3, delete `app_info.xml` from the PrimeGrid directory, and reopen BOINC Manager. Then reset PrimeGrid in BOINC Manager (select it in the Projects tab and click Reset project) so BOINC downloads the official applications again. Resetting the project discards its current tasks.
 
+## Proof checkpoint storage
+
+Vibefer keeps intermediate proof checkpoints in host RAM when there is enough available for the tasks BOINC is running, and switches to disk if memory gets tight. It saves buffered checkpoints on a clean quit so BOINC can resume. A crash or power loss can roll the task back to its last disk checkpoint.
+
+To save checkpoints to disk throughout the task, add `--proof-storage=disk` to the existing `<cmdline>` in the relevant `app_version` of your local `app_info.xml`, then restart BOINC. The same option works for standalone runs.
+
 ## Optional extra checks
 
 Every test runs Gallot’s Gerbicz–Li check, which detects computation errors while the test runs. Two optional checks use Gallot’s original OpenCL code to verify the finished result independently of this fork’s arithmetic:
