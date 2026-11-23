@@ -27,6 +27,10 @@ class Episode:
         candidate=28000000,
         check_certificate=True,
         check_tail=True,
+        exponent=19,
+        memory_limit_mib=None,
+        start_gate=None,
+        force_disk=False,
     ):
         self.slot, self.label = slot, label
         subprocess.run(
@@ -35,7 +39,7 @@ class Episode:
                 str(slot),
                 str(os.getpid() if client_pid is None else client_pid),
                 str(public),
-            ],
+            ] + ([] if memory_limit_mib is None else [str(memory_limit_mib)]),
             check=True,
         )
         self.file = (slot / "boinc_mmap_file").open("r+b")
@@ -43,20 +47,24 @@ class Episode:
         self.log = (slot.parent / (label + ".launch.log")).open("w")
         self.samples = []
         self.last_heartbeat = 0
-        self.process = subprocess.Popen(
-            [
-                str(slot / "renamed executable"),
-                "-boinc",
-                "-" + mode,
-                "-n",
-                "19",
-                "-b",
-                str(candidate),
-                "-f",
-                "gproof",
+        self.heartbeat = "<heartbeat/>"
+        command = [
+            str(slot / "renamed executable"), "-boinc", "-" + mode,
+            "-n", str(exponent), "-b", str(candidate), "-f", "gproof",
+        ]
+        if check_certificate:
+            command.append("--check-certificate")
+        if check_tail:
+            command.append("--check-tail")
+        if force_disk:
+            command.append("--proof-storage=disk")
+        if start_gate is not None:
+            command = [
+                "sh", "-c", 'while [ ! -e "$1" ]; do sleep .05; done; shift; exec "$@"',
+                "start-gate", str(start_gate), *command,
             ]
-            + (["--check-certificate"] if check_certificate else [])
-            + (["--check-tail"] if check_tail else []),
+        self.process = subprocess.Popen(
+            command,
             cwd=slot,
             stdout=self.log,
             stderr=subprocess.STDOUT,
@@ -77,7 +85,7 @@ class Episode:
     def tick(self, heartbeat=True):
         now = time.monotonic()
         if heartbeat and now - self.last_heartbeat >= 0.5:
-            if self.send(4, "<heartbeat/>"):
+            if self.send(4, self.heartbeat):
                 self.last_heartbeat = now
         if self.mem[5 * 1024]:
             data = bytes(self.mem[5 * 1024 + 1 : 6 * 1024]).split(b"\0")[0].decode()

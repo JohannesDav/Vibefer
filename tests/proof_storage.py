@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Check host-RAM proof storage and recovery with a Linux CPU build."""
+
+import argparse
+import fcntl
+import os
+from pathlib import Path
+import resource
+import signal
+import struct
+import subprocess
+import time
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--executable", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    executable = args.executable.resolve()
+    output = args.output.resolve()
+    output.mkdir()
+    command = ["stdbuf", "-o0", executable, "-n", "12", "-b", "1534", "-x", "i32", "-p", "-f", "candidate"]
+    disk = ["--proof-storage=disk"]
+    checkpoint = "candidate.ctx"
+    proof = "candidate.proof"
+
+    def limit_file_size():
+        signal.signal(signal.SIGXFSZ, signal.SIG_IGN)
+        resource.setrlimit(resource.RLIMIT_FSIZE, (4096, 4096))
+
+    def run(work, label, switches=(), stop=None, fail_save=False):
+        log = work / (label + ".log")
+        with log.open("w") as stream:
+            proc = subprocess.Popen(
+                command + list(switches), cwd=work, stdout=stream, stderr=subprocess.STDOUT,
+                preexec_fn=limit_file_size if fail_save else None,
+            )
+            try:
+                if stop:
+                    deadline = time.monotonic() + 60
+                    while not stop(work, log):
+                        assert proc.poll() is None, log.read_text()
+                        assert time.monotonic() < deadline, log.read_text()
+                        time.sleep(0.01)
+                    proc.terminate()
+                assert proc.wait(timeout=120) == int(fail_save), log.read_text()
+            finally:
+                if proc.poll() is None:
+                    proc.kill()
+                    proc.wait()
+        return log.read_text()
+
+    def after_start(work, log):
+        if "Proof checkpoints: host RAM (" not in log.read_text():
+            return False
+        time.sleep(0.5)
+        assert not (work / checkpoint).exists()
+        assert not list(work.glob("*.ckpt"))
+        return True
+
+    def during_proof(work, _log):
+        if not (work / proof).exists():
+            return False
+        assert not (work / checkpoint).exists()
+        assert not list(work.glob("*.ckpt"))
+        return True
+
+    def after_resume(_work, log):
+        if "Resuming from a checkpoint." not in log.read_text():
+            return False
+        time.sleep(0.5)
+        return True
+
+    assert "Proof checkpoints: disk (forced)." in run(output, "reference", disk)
+    expected = (output / proof).read_bytes()
+    for label, stop, resume_args in (
+        ("prp-to-disk", after_start, disk),
+        ("proof-to-ram", during_proof, []),
+    ):
+        work = output / label
+        work.mkdir()
+        text = run(work, "quit", stop=stop)
+        assert "Proof checkpoints: host RAM (" in text
+        assert "terminated." in text and not (work / "results.txt").exists()
+        saved_context = (work / checkpoint).read_bytes()
+        saved_bit = struct.unpack_from("=i", saved_context, 8)[0]
+        points = len(list(work.glob("*.ckpt")))
+        if label == "prp-to-disk":
+            assert saved_bit > 0 and 0 < points < 128
+            text = run(work, "failed-save", stop=after_resume, fail_save=True)
+            assert "failure of a write operation" in text
+            assert (work / checkpoint).read_bytes() == saved_context
+            print("PASS failed save leaves the previous checkpoint usable", flush=True)
+        else:
+            assert saved_bit == -1 and points == 128
+        text = run(work, "resume", resume_args)
+        assert "Resuming from a checkpoint." in text
+        assert (work / proof).read_bytes() == expected
+        print("PASS", label, flush=True)
+
+    # A concurrent allocation can cause automatic selection of disk storage.
+    work = output / "busy-lock"
+    work.mkdir()
+    lock_path = Path("/tmp") / f"vibefer-proof-buffer-{os.getuid()}"
+    with lock_path.open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        assert "Proof checkpoints: disk (proof memory reservation unavailable)." in run(work, "auto")
+    assert (work / proof).read_bytes() == expected
+    print("PASS automatic disk fallback", flush=True)
+
+
+if __name__ == "__main__":
+    main()

@@ -30,6 +30,7 @@ Please give feedback to the authors if improvement is realized. It is distribute
 #include "ocl.h"
 #endif
 #include "transform.h"
+#include "proof_buffer.h"
 #include "arith.h"
 
 inline int ilog2_32(const uint32_t n) { return 31 - __builtin_clz(n); }
@@ -56,6 +57,9 @@ public:
 private:
 	std::atomic_bool _quit = false;
 	bool _isBoinc = false;
+	bool _diskProofStorage = false, _discardProof = false;
+	proof_buffer _proofBuffer;
+	size_t _legacyProofRegisters = 0;
 #if defined(GENEFER_AUTOMATIC_CUDA)
 	bool _extra_certificate = false, _extra_tail = false;
 #endif
@@ -86,6 +90,7 @@ public:
 	}
 
 	void setBoinc(const bool isBoinc) { _isBoinc = isBoinc; }
+	void setDiskProofStorage(const bool disk) { _diskProofStorage = disk; }
 #if defined(GENEFER_AUTOMATIC_CUDA)
 	void setExtraChecks(bool certificate,bool tail) {
 		_extra_certificate=certificate; _extra_tail=tail;
@@ -213,7 +218,19 @@ private:
 
 	static void clearline() { pio::display("                                                            \r"); }
 
-	int _readContext(const std::string & filename, const int where, const bool fast_checkpoints, int & i, double & elapsedTime)
+	bool hasLegacyProofContext(const std::string & filename, const size_t registers) const
+	{
+		// The old GPU format stored all the transform registers in the context.
+		// The compact format has the same header and two registers.
+		const uintmax_t registerBytes = (uintmax_t(1) << _n) * sizeof(uint32_t);
+		constexpr size_t overhead = 4 * sizeof(int) + sizeof(double) + sizeof(uint32_t);
+		std::error_code error;
+		const uintmax_t bytes = std::filesystem::file_size(filename, error);
+		return !error && (bytes == overhead + 2 * registers * registerBytes
+						  || bytes == overhead + 3 * registers * registerBytes);
+	}
+
+	int _readContext(const std::string & filename, const int where, int & i, double & elapsedTime, bool * legacyProof)
 	{
 		file contextFile(filename);
 		if (!contextFile.exists()) return -1;
@@ -229,16 +246,19 @@ private:
 		if (rwhere != where) return -2;
 		if (!contextFile.read(reinterpret_cast<char *>(&i), sizeof(i))) return -2;
 		if (!contextFile.read(reinterpret_cast<char *>(&elapsedTime), sizeof(elapsedTime))) return -2;
-		const size_t num_reg = (where == 0) ? 2 : 3;
-		if (!_transform->readContext(contextFile, fast_checkpoints ? 0 : num_reg)) return -2;
+		const bool legacy = legacyProof && _legacyProofRegisters &&
+			hasLegacyProofContext(filename, _legacyProofRegisters);
+		const size_t num_reg = legacy ? _legacyProofRegisters : (where == 0 ? 2 : 3);
+		if (!_transform->readContext(contextFile, num_reg)) return -2;
 		if (!contextFile.check_crc32()) return -2;
+		if (legacyProof) *legacyProof = legacy;
 		return 0;
 	}
 
-	bool readContext(const int where, const bool fast_checkpoints, int & i, double & elapsedTime)
+	bool readContext(const int where, int & i, double & elapsedTime, bool * legacyProof = nullptr)
 	{
 		std::string ctxFile = contextFilename();
-		int error = _readContext(ctxFile, where, fast_checkpoints, i, elapsedTime);
+		int error = _readContext(ctxFile, where, i, elapsedTime, legacyProof);
 		if (error < -1)
 		{
 			std::ostringstream ss; ss << ctxFile << ": invalid context";
@@ -247,7 +267,7 @@ private:
 		ctxFile += ".old";
 		if (error < 0)
 		{
-			error = _readContext(ctxFile, where, fast_checkpoints, i, elapsedTime);
+			error = _readContext(ctxFile, where, i, elapsedTime, legacyProof);
 			if (error < -1)
 			{
 				std::ostringstream ss; ss << ctxFile << ": invalid context";
@@ -257,7 +277,7 @@ private:
 		return (error == 0);
 	}
 
-	void saveContext(const int where, const bool fast_checkpoints, const int i, const double elapsedTime) const
+	void saveContext(const int where, const int i, const double elapsedTime) const
 	{
 		const std::string ctxFile = contextFilename(), oldCtxFile = ctxFile + ".old", newCtxFile = ctxFile + ".new";
 
@@ -272,7 +292,7 @@ private:
 			if (!contextFile.write(reinterpret_cast<const char *>(&i), sizeof(i))) return;
 			if (!contextFile.write(reinterpret_cast<const char *>(&elapsedTime), sizeof(elapsedTime))) return;
 			const size_t num_reg = (where == 0) ? 2 : 3;
-			_transform->saveContext(contextFile, fast_checkpoints ? 0 : num_reg);
+			_transform->saveContext(contextFile, num_reg);
 			contextFile.write_crc32();
 		}
 
@@ -413,9 +433,10 @@ private:
 		std::remove(std::string(ctxFile + ".old").c_str());
 	}
 
-	static bool boincQuitRequest(const BOINC_STATUS & status)
+	bool boincQuitRequest(const BOINC_STATUS & status)
 	{
 		if ((status.quit_request | status.abort_request | status.no_heartbeat) == 0) return false;
+		_discardProof = status.abort_request != 0;
 
 		std::ostringstream ss; ss << "Terminating because Boinc ";
 		if (status.quit_request != 0) ss << "requested that we should quit.";
@@ -436,7 +457,7 @@ private:
 		if (!suspended) _print_sr = false;
 	}
 
-	void boincMonitor()
+	void boincMonitor(const bool proofPhase = false)
 	{
 		BOINC_STATUS status; boinc_get_status(&status);
 		if (boincQuitRequest(status)) { quit(); return; }
@@ -446,6 +467,7 @@ private:
 			printState(true);
 			while (status.suspended != 0)
 			{
+				if (proofPhase) spillProofBuffer();
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 				boinc_get_status(&status);
 				if (boincQuitRequest(status)) { quit(); return; }
@@ -454,7 +476,7 @@ private:
 		}
 	}
 
-	void boincMonitor(const int where, const bool fast_checkpoints, const int i, watch & chrono)
+	void boincMonitor(const int where, const int i, watch & chrono)
 	{
 		BOINC_STATUS status; boinc_get_status(&status);
 		if (boincQuitRequest(status)) { quit(); return; }
@@ -462,9 +484,11 @@ private:
 		if (status.suspended != 0)
 		{
 			printState(true);
-			saveContext(where, fast_checkpoints, i, chrono.getElapsedTime());
+			if (!_proofBuffer.active()) saveContext(where, i, chrono.getElapsedTime());
 			while (status.suspended != 0)
 			{
+				if (where == 0 && spillProofBuffer())
+					saveContext(where, i, chrono.getElapsedTime());
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 				boinc_get_status(&status);
 				if (boincQuitRequest(status)) { quit(); return; }
@@ -472,9 +496,9 @@ private:
 			printState(false);
 		}
 
-		if (boinc_time_to_checkpoint() != 0)
+		if (!_proofBuffer.active() && boinc_time_to_checkpoint() != 0)
 		{
-			saveContext(where, fast_checkpoints, i, chrono.getElapsedTime());
+			saveContext(where, i, chrono.getElapsedTime());
 			boinc_checkpoint_completed();
 		}
 	}
@@ -516,14 +540,90 @@ private:
 		return static_cast<int>((esize - 1) >> depth) + 1;
 	}
 
+	void writeProofCheckpoint(const size_t index)
+	{
+		file ckptFile(ckptFilename(index), "wb", true);
+		_gi->write(ckptFile);
+		ckptFile.write_crc32();
+	}
+
+	void storeProofCheckpoint(const size_t index)
+	{
+		if (_proofBuffer.active()) _proofBuffer.store(index, *_gi);
+		else writeProofCheckpoint(index);
+	}
+
+	void loadProofCheckpoint(const size_t index)
+	{
+		if (_proofBuffer.contains(index))
+			_proofBuffer.load(index, *_gi);
+		else
+		{
+			file ckptFile(ckptFilename(index), "rb", true);
+			_gi->read(ckptFile);
+			ckptFile.check_crc32();
+		}
+	}
+
+	void flushProofCheckpoints()
+	{
+		if (!_proofBuffer.active()) return;
+		for (size_t index = 0; index < _proofBuffer.points(); ++index)
+		{
+			if (!_proofBuffer.contains(index)) continue;
+			_proofBuffer.load(index, *_gi);
+			writeProofCheckpoint(index);
+		}
+	}
+
+	bool spillProofBuffer()
+	{
+		const std::string reason = _proofBuffer.disk_reason(_isBoinc);
+		if (reason.empty()) return false;
+		flushProofCheckpoints();
+		_proofBuffer.release_points();
+		pio::print("Memory pressure: switched proof checkpoints to disk (" + reason + ").\n");
+		return true;
+	}
+
+	void saveCompletedProof(const double testTime)
+	{
+		if (!_proofBuffer.has_completed() || _discardProof) return;
+		const size_t points = _proofBuffer.points();
+
+		flushProofCheckpoints();
+		_proofBuffer.load(points + 1, *_gi);
+		_transform->setInt(*_gi);
+		_transform->copy(1, 0);
+		_proofBuffer.load(points, *_gi);
+		_transform->setInt(*_gi);
+		saveContext(0, -1, testTime);
+	}
+
+	void restoreLegacyProofPoints(const int nextBit, const int blockSize)
+	{
+		pio::print("Restoring proof checkpoints from a legacy GPU context.\n");
+		_transform->copy(2, 0);
+		for (size_t index = 0; index < _legacyProofRegisters - 3; ++index)
+		{
+			// The context is saved before processing nextBit.
+			if (static_cast<int64_t>(index) * blockSize <= nextBit) continue;
+			_transform->copy(0, 3 + index);
+			_transform->getInt(*_gi);
+			storeProofCheckpoint(index);
+		}
+		_transform->copy(0, 2);
+	}
+
 	// out: reg_0 is 2^exponent and reg_1 is d(t)
-	EReturn prp(const mpz_t & exponent, const int B_GL, const int B_PL, const bool fast_checkpoints, double & testTime)
+	EReturn prp(const mpz_t & exponent, const int B_GL, const int B_PL, double & testTime)
 	{
 		transform * const pTransform = _transform;
 		gint & gi = *_gi;
 
 		int ri = 0; double restoredTime = 0;
-		const bool found = readContext(0, fast_checkpoints, ri, restoredTime);
+		bool legacyProof = false;
+		const bool found = readContext(0, ri, restoredTime, &legacyProof);
 		if (!found)
 		{
 			ri = 0; restoredTime = 0;
@@ -534,6 +634,7 @@ private:
 		{
 			std::ostringstream ss; ss << "Resuming from a checkpoint." << std::endl;
 			pio::print(ss.str());
+			if (legacyProof) restoreLegacyProofPoints(ri, B_PL);
 			if (ri == -1)
 			{
 				testTime = 0;
@@ -548,19 +649,25 @@ private:
 
 		for (int i = i_start; i >= 0; --i)
 		{
-			if (_isBoinc) boincMonitor(0, fast_checkpoints, i, chrono);
+			if (_isBoinc) boincMonitor(0, i, chrono);
 
 			if (quitting())
 			{
-				saveContext(0, fast_checkpoints, i, chrono.getElapsedTime());
+				if (!_proofBuffer.active() || !_discardProof)
+				{
+					if (_proofBuffer.active()) flushProofCheckpoints();
+					saveContext(0, i, chrono.getElapsedTime());
+				}
 				return EReturn::Aborted;
 			}
+
+			if (i % 1024 == 0 && spillProofBuffer()) saveContext(0, i, chrono.getElapsedTime());
 
 			if (i % dcount == 0)
 			{
 				const double elapsedTime = chrono.getElapsedTime(), displayTime = chrono.getDisplayTime();
 				if (displayTime >= 10) { dcount = printProgress(elapsedTime, displayTime, i); chrono.resetDisplayTime(); }
-				if (!_isBoinc && (chrono.getRecordTime() > 600)) { saveContext(0, fast_checkpoints, i, chrono.getElapsedTime()); chrono.resetRecordTime(); }
+				if (!_isBoinc && !_proofBuffer.active() && (chrono.getRecordTime() > 600)) { saveContext(0, i, chrono.getElapsedTime()); chrono.resetRecordTime(); }
 			}
 
 			pTransform->squareDup(mpz_tstbit(exponent, mp_bitcnt_t(i)) != 0);
@@ -576,19 +683,24 @@ private:
 			}
 			if ((B_PL != 0) && (i % B_PL == 0))
 			{
-				if (fast_checkpoints) pTransform->copy(3 + size_t(i / B_PL), 0);
-				else
-				{
-					pTransform->getInt(gi);
-					file ckptFile(ckptFilename(size_t(i / B_PL)), "wb", true);
-					gi.write(ckptFile);
-					ckptFile.write_crc32();
-				}
+				pTransform->getInt(gi);
+				storeProofCheckpoint(size_t(i / B_PL));
 			}
 		}
 
 		testTime = chrono.getElapsedTime();
-		saveContext(0, fast_checkpoints, -1, testTime);
+		if (_proofBuffer.active())
+		{
+			const size_t points = _proofBuffer.points();
+			pTransform->getInt(gi);
+			_proofBuffer.store(points, gi);
+			pTransform->copy(2, 0);
+			pTransform->copy(0, 1);
+			pTransform->getInt(gi);
+			_proofBuffer.store(points + 1, gi);
+			pTransform->copy(0, 2);
+		}
+		else saveContext(0, -1, testTime);
 		return EReturn::Success;
 	}
 
@@ -612,8 +724,9 @@ private:
 		pTransform->copy(0, 1);
 		for (int i = B_GL - 1; i >= 0; --i)
 		{
-			if (_isBoinc) boincMonitor();
+			if (_isBoinc) boincMonitor(true);
 			if (quitting()) return EReturn::Aborted;
+			if (i % 1024 == 0) spillProofBuffer();
 			pTransform->squareDup(false);
 		}
 		pTransform->copy(1, 0);
@@ -632,8 +745,9 @@ private:
 		pTransform->set(1);
 		for (int i = static_cast<int>(mpz_sizeinbase(res, 2)) - 1; i >= 0; --i)
 		{
-			if (_isBoinc) boincMonitor();
+			if (_isBoinc) boincMonitor(true);
 			if (quitting()) { mpz_clear(res); return EReturn::Aborted; }
+			if (i % 1024 == 0) spillProofBuffer();
 			pTransform->squareDup(mpz_tstbit(res, mp_bitcnt_t(i)) != 0);
 		}
 
@@ -657,7 +771,7 @@ private:
 	// (Pietrzak-Li proof generation
 	// in: ckpt[i]
 	// out: proof file, proof key
-	EReturn PL(const int depth, const bool fast_checkpoints, double & proofTime, uint64_t & pkey, const bool expected_prp)
+	EReturn PL(const int depth, double & proofTime, uint64_t & pkey, const bool expected_prp)
 	{
 		transform * const pTransform = _transform;
 		gint & gi = *_gi;
@@ -680,17 +794,7 @@ private:
 		proofFile.write(reinterpret_cast<const char *>(&depth), sizeof(depth));
 
 		// mu[0] = ckpt[0]
-		if (fast_checkpoints)
-		{
-			pTransform->copy(0, 3 + 0);
-			pTransform->getInt(gi);
-		}
-		else
-		{
-			file ckptFile(ckptFilename(0), "rb", true);
-			gi.read(ckptFile);
-			ckptFile.check_crc32();
-		}
+		loadProofCheckpoint(0);
 		uint64_t res64 = 0, old64 = 0;
 		if (gi.isOne(res64, old64) != expected_prp)
 			throw std::runtime_error("Reported verdict disagrees with proof residue");
@@ -709,17 +813,12 @@ private:
 
 		for (int k = 1; k <= depth; ++k)
 		{
+			spillProofBuffer();
 			const size_t i = size_t(1) << (depth - k);
 
 			// mu[k] = ckpt[i]^w[0]
-			if (fast_checkpoints) pTransform->copy(0, 3 + i);
-			else
-			{
-				file ckptFile(ckptFilename(i), "rb", true);
-				gi.read(ckptFile);
-				ckptFile.check_crc32();
-				pTransform->setInt(gi);
-			}
+			loadProofCheckpoint(i);
+			pTransform->setInt(gi);
 			powerz(0, w[0]);
 // s += mpz_sizeinbase(w[0], 2);
 			pTransform->copy(1, 0);
@@ -727,26 +826,21 @@ private:
 			for (size_t j = i; j < L / 2; j += i)
 			{
 				// mu[k] *= ckpt[i + 2 * j]^w[j]
-				if (fast_checkpoints) pTransform->copy(0, 3 + i + 2 * j);
-				else
-				{
-					file ckptFile(ckptFilename(i + 2 * j), "rb", true);
-					gi.read(ckptFile);
-					ckptFile.check_crc32();
-					pTransform->setInt(gi);
-				}
+				loadProofCheckpoint(i + 2 * j);
+				pTransform->setInt(gi);
 				powerz(0, w[j]);
 // s += mpz_sizeinbase(w[j], 2);
 				pTransform->mul(1);
 				pTransform->copy(1, 0);
 
-				if (_isBoinc) boincMonitor();
+				if (_isBoinc) boincMonitor(true);
 				if (quitting())
 				{
 					for (size_t i = 0; i < L / 2; ++i) mpz_clear(w[i]);
 					delete[] w;
 					return EReturn::Aborted;
 				}
+				spillProofBuffer();
 			}
 // std::cout << k << ": " << s << ", " << 32 * k * (1 << (k - 1))<< std::endl;
 			pTransform->getInt(gi);
@@ -788,7 +882,7 @@ private:
 	{
 		const int B_GL = B_GerbiczLi(mpz_sizeinbase(exponent, 2));
 
-		const EReturn rPrp = prp(exponent, B_GL, 0, false, testTime);
+		const EReturn rPrp = prp(exponent, B_GL, 0, testTime);
 		if (rPrp != EReturn::Success) return rPrp;
 		{
 			gint & gi = *_gi;
@@ -802,13 +896,13 @@ private:
 		return GL(exponent, B_GL, validTime);
 	}
 
-	EReturn proof(const mpz_t & exponent, const int depth, const bool fast_checkpoints, double & testTime, double & validTime, double & proofTime,
+	EReturn proof(const mpz_t & exponent, const int depth, double & testTime, double & validTime, double & proofTime,
 				  bool & isPrp, uint64_t & pkey, uint64_t & res64, uint64_t & old64)
 	{
 		const size_t esize = mpz_sizeinbase(exponent, 2);
 		const int B_GL = B_GerbiczLi(esize), B_PL = B_PietrzakLi(esize, depth);
 
-		const EReturn rPrp = prp(exponent, B_GL, B_PL, fast_checkpoints, testTime);
+		const EReturn rPrp = prp(exponent, B_GL, B_PL, testTime);
 		if (rPrp != EReturn::Success) return rPrp;
 		{
 			gint & gi = *_gi;
@@ -818,24 +912,14 @@ private:
 
 #if defined(GENEFER_AUTOMATIC_CUDA)
 		if(_extra_tail) {
-			if(fast_checkpoints) {
-				_transform->copy(2,0);
-				_transform->copy(0,4); // checkpoint 1, held in register 3+1
-				_transform->getInt(*_gi);
-				{
-					file output(_mainFilename+".tail","wb",true);
-					_gi->write(output); output.write_crc32();
-				}
-				_transform->copy(0,2);
-			} else {
-				std::filesystem::copy_file(pio::resolve(ckptFilename(1)),pio::resolve(_mainFilename+".tail"),
-										  std::filesystem::copy_options::overwrite_existing);
-			}
+			loadProofCheckpoint(1);
+			file output(_mainFilename+".tail","wb",true);
+			_gi->write(output); output.write_crc32();
 		}
 #endif
 		const EReturn rGL = GL(exponent, B_GL, validTime);
 		if (rGL != EReturn::Success) return rGL;
-		return PL(depth, fast_checkpoints, proofTime, pkey, isPrp);
+		return PL(depth, proofTime, pkey, isPrp);
 	}
 
 	static uint32_t rand32(const uint32_t rmin, const uint32_t rmax) { return (static_cast<uint32_t>(std::rand()) % (rmax - rmin)) + rmin; }
@@ -963,7 +1047,7 @@ private:
 		gint & gi = *_gi;
 
 		int ri = 0; double restoredTime = 0;
-		const bool found = readContext(1, false, ri, restoredTime);
+		const bool found = readContext(1, ri, restoredTime);
 		if (!found)
 		{
 			ri = 0; restoredTime = 0;
@@ -1004,11 +1088,11 @@ private:
 			}
 			for (int i = found ? ri : i0; i >= p2size; --i)
 			{
-				if (_isBoinc) boincMonitor(1, false, i, chrono);
+				if (_isBoinc) boincMonitor(1, i, chrono);
 
 				if (quitting())	// || (i == p2size + B/2))	// test context
 				{
-					saveContext(1, false, i, chrono.getElapsedTime());
+					saveContext(1, i, chrono.getElapsedTime());
 					mpz_clear(p2);
 					return EReturn::Aborted;
 				}
@@ -1017,7 +1101,7 @@ private:
 				{
 					const double elapsedTime = chrono.getElapsedTime(), displayTime = chrono.getDisplayTime();
 					if (displayTime >= 10) { dcount = printProgress(elapsedTime, displayTime, i); chrono.resetDisplayTime(); }
-					if (!_isBoinc && (chrono.getRecordTime() > 600)) { saveContext(1, false, i, chrono.getElapsedTime()); chrono.resetRecordTime(); }
+					if (!_isBoinc && (chrono.getRecordTime() > 600)) { saveContext(1, i, chrono.getElapsedTime()); chrono.resetRecordTime(); }
 				}
 
 				const int j = i0 - i;
@@ -1082,11 +1166,11 @@ private:
 		}
 		for (int i = found ? std::min(ri, p2size - 1) : p2size - 1; i >= 0; --i)
 		{
-			if (_isBoinc) { boincMonitor(1, false, i, chrono); }
+			if (_isBoinc) { boincMonitor(1, i, chrono); }
 
 			if (quitting())	// || (i == p2size/2))	// test context
 			{
-				saveContext(1, false, i, chrono.getElapsedTime());
+				saveContext(1, i, chrono.getElapsedTime());
 				mpz_clear(p2);
 				return EReturn::Aborted;
 			}
@@ -1095,7 +1179,7 @@ private:
 			{
 				const double elapsedTime = chrono.getElapsedTime(), displayTime = chrono.getDisplayTime();
 				if (displayTime >= 10) { dcount = printProgress(elapsedTime, displayTime, i); chrono.resetDisplayTime(); }
-				if (!_isBoinc && (chrono.getRecordTime() > 600)) { saveContext(1, false, i, chrono.getElapsedTime()); chrono.resetRecordTime(); }
+				if (!_isBoinc && (chrono.getRecordTime() > 600)) { saveContext(1, i, chrono.getElapsedTime()); chrono.resetRecordTime(); }
 			}
 
 			pTransform->squareDup(mpz_tstbit(p2, mp_bitcnt_t(i)) != 0);
@@ -1535,21 +1619,20 @@ public:
 		if (mode == EMode::Bench) return bench(n, device, nthreads, impl);
 		if (mode == EMode::Limit) return check_limit(n, device, nthreads, impl);
 
-		bool fast_checkpoints =
-#if defined(GPU)
-			(n <= 17);
-#else
-			false;
-#endif
 		size_t num_regs;
-		if (mode == EMode::Quick) num_regs = 3;
-		else if (mode == EMode::Proof) num_regs = fast_checkpoints ? 3 + (size_t(1) << depth) : 3;
-		else if (mode == EMode::Server) num_regs = 4;
-		else if (mode == EMode::Check) num_regs = 4;
-		else if (mode == EMode::Prime) num_regs = 3;
+		if (mode == EMode::Quick || mode == EMode::Proof || mode == EMode::Prime) num_regs = 3;
+		else if (mode == EMode::Server || mode == EMode::Check) num_regs = 4;
 		else return EReturn::Failed;
 
+		_legacyProofRegisters = 0;
 #if defined(GPU)
+		if (mode == EMode::Proof)
+		{
+			const size_t registers = 3 + (size_t(1) << depth);
+			if (hasLegacyProofContext(contextFilename(), registers) ||
+				hasLegacyProofContext(contextFilename() + ".old", registers))
+				num_regs = _legacyProofRegisters = registers;
+		}
 		(void)nthreads; (void)impl;
 		createTransformGPU(b, n, device, num_regs);
 #else
@@ -1658,13 +1741,19 @@ public:
 			else if (mode == EMode::Proof)
 			{
 				double testTime = 0, validTime = 0, proofTime = 0; bool isPrp = false; uint64_t pkey = 0, res64 = 0, old64 = 0;
-				success = proof(exponent, depth, fast_checkpoints, testTime, validTime, proofTime, isPrp, pkey, res64, old64);
+				const size_t points = size_t(1) << depth;
+				const std::string storage = _diskProofStorage ? "disk (forced)" :
+					_proofBuffer.allocate(_gi->getSize(), points + 2, _isBoinc);
+				pio::print("Proof checkpoints: " + storage + ".\n");
+				success = proof(exponent, depth, testTime, validTime, proofTime, isPrp, pkey, res64, old64);
 #if defined(GENEFER_AUTOMATIC_CUDA)
 				if(success==EReturn::Success && (_extra_certificate || _extra_tail)) {
 					try { success=extraChecks(b,n,device,exponent,isPrp); }
 					catch(const std::exception &error) { pio::error(error.what()); success=EReturn::Failed; }
 				}
 #endif
+				if (success == EReturn::Aborted) saveCompletedProof(testTime);
+				_proofBuffer = {};
 				const double error = _transform ? _transform->getError() : 0;
 				const double time = testTime + validTime + proofTime;
 				clearline();
