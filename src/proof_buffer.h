@@ -149,6 +149,10 @@ private:
 		for (const int pid : client->second.children)
 		{
 			if (pid == self) continue;
+#if defined(_WIN64)
+			// Windows may start a console host as a child of the BOINC client.
+			if (_stricmp(processes.at(pid).command, "conhost.exe") == 0) continue;
+#endif
 			PROCINFO peer;
 			peer.id = pid;
 			procinfo_app(peer, nullptr, processes, nullptr);
