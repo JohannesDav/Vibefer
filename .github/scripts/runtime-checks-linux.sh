@@ -6,18 +6,14 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 export POCL_MAX_PTHREAD_COUNT=2
 
-banner=$("$executable" -v)
-if [[ "${GITHUB_REF:-}" == refs/tags/v* ]]; then
-    grep -Fx "Vibefer ${GITHUB_REF#refs/tags/v} (https://github.com/JohannesDav/Vibefer)" <<<"$banner"
-else
-    grep -Ex 'Vibefer [^[:space:]]+ \(https://github\.com/JohannesDav/Vibefer\)' <<<"$banner"
-fi
+bash .github/scripts/check-banner.sh "$executable"
 
 make -C genefer -f makefile_linux_x64 BOINC= CC='g++ -std=c++17 -pthread' -j2 ../bin/genefer
 make -C cyclo -f Makefile_linux -j2
 g++ -std=c++17 -O2 tests/gfn_residue.cpp -lgmp -o "$work/gfn-residue"
 python3 tests/cpu_regressions.py --genefer bin/genefer --cyclo bin/cyclo \
     --oracle "$work/gfn-residue"
+python3 tests/proof_storage.py --executable bin/genefer --output "$work/proof-storage"
 
 g++ -std=c++17 -O2 -DGPU -Isrc -IKhronos tests/two_prime_overflow.cpp \
     -lOpenCL -lgmp -o "$work/two-prime-overflow"
