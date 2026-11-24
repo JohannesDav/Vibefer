@@ -219,7 +219,17 @@ public:
         {
             CUgraph graph{};
             cuda_check(cuStreamBeginCapture(stream_,CU_STREAM_CAPTURE_MODE_THREAD_LOCAL));
-            capturing_=true;launch();capturing_=false;
+            capturing_=true;
+            try {
+                launch();
+            } catch (...) {
+                capturing_=false;
+                // Ending an invalidated capture may itself fail. Preserve the launch error.
+                (void)cuStreamEndCapture(stream_,&graph);
+                if(graph) (void)cuGraphDestroy(graph);
+                throw;
+            }
+            capturing_=false;
             cuda_check(cuStreamEndCapture(stream_,&graph));
             cuda_check(cuGraphInstantiate(&squares_[bit],graph,0));
             remember(bit,graph);
