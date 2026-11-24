@@ -485,10 +485,8 @@ public:
 			if (ret == genefer::EReturn::Failed) boinc_finish(EXIT_CHILD_FAILED);
 		}
 
-#if defined(GENEFER_AUTOMATIC_CUDA)
-		if(!bBoinc && ret==genefer::EReturn::Failed)
+		if (!bBoinc && ret == genefer::EReturn::Failed)
 			throw std::runtime_error("Candidate calculation or verification failed");
-#endif
 
 		if (ret == genefer::EReturn::Aborted)
 		{

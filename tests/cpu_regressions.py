@@ -180,6 +180,29 @@ def proof_verdict_mismatch(executable, root):
         print(f"PASS proof rejects a changed composite {field}", flush=True)
 
 
+def failed_validation(executable, root):
+    work = root / "failed-validation"
+    work.mkdir()
+    results = work / "results.txt"
+    results.mkdir()
+    args = command(executable, COMPOSITE, "-q") + ["-x", "i32"]
+    original = run(args, work)
+    assert "Cannot write 'results.txt' file" in original.stdout, original.stdout
+    results.rmdir()
+    checkpoint = work / "candidate.ctx"
+    saved = checkpoint.read_bytes()
+    assert struct.unpack_from("=i", saved, 8) == (-1,)
+    # Replace the saved Gerbicz–Li accumulator with the final PRP residue.
+    registers = saved[32:-4]
+    assert len(registers) % 2 == 0
+    final = registers[:len(registers) // 2]
+    checkpoint.write_bytes(with_checksum(saved[:32] + final + final))
+    result = run(args, work)
+    assert result.returncode == 1 and "validation failed!" in result.stdout, result.stdout
+    assert " is composite" not in result.stdout
+    print("PASS failed Gerbicz–Li validation returns failure", flush=True)
+
+
 def failure_cases(executable, cyclo, root):
     work = root / "cyclo"
     work.mkdir()
@@ -220,6 +243,7 @@ def main():
         checkpoint_recovery(args.genefer.resolve(), root)
         ordinary_checkpoint_candidate(args.genefer.resolve(), root)
         proof_verdict_mismatch(args.genefer.resolve(), root)
+        failed_validation(args.genefer.resolve(), root)
         failure_cases(args.genefer.resolve(), args.cyclo.resolve(), root)
 
 
