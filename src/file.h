@@ -7,6 +7,7 @@ Please give feedback to the authors if improvement is realized. It is distribute
 
 #pragma once
 
+#include <array>
 #include <iomanip>
 
 #include <gmp.h>
@@ -70,14 +71,9 @@ public:
 	// Rosetta Code, CRC-32, C
 	static uint32_t rc_crc32(const uint32_t crc32, const char * const buf, const size_t len)
 	{
-		static uint32_t table[256];
-		static bool have_table = false;
-	
-		// This check is not thread safe; there is no mutex
-		if (!have_table)
-		{
-			// Calculate CRC table
-			for (size_t i = 0; i < 256; ++i)
+		static const auto table = [] {
+			std::array<uint32_t, 256> values{};
+			for (size_t i = 0; i < values.size(); ++i)
 			{
 				uint32_t rem = static_cast<uint32_t>(i);  // remainder from polynomial division
 				for (size_t j = 0; j < 8; ++j)
@@ -89,10 +85,10 @@ public:
 					}
 					else rem >>= 1;
 				}
-				table[i] = rem;
+				values[i] = rem;
 			}
-			have_table = true;
-		}
+			return values;
+		}();
 
 		uint32_t crc = ~crc32;
 		for (size_t i = 0; i < len; ++i)
