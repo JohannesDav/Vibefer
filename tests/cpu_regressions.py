@@ -12,7 +12,9 @@ import select
 import shutil
 import signal
 import subprocess
+import sys
 import tempfile
+import zlib
 import time
 
 
@@ -121,6 +123,36 @@ def checkpoint_recovery(executable, root):
         print(f"PASS deterministic checkpoint {label}", flush=True)
 
 
+def with_checksum(data):
+    checksum = (~zlib.crc32(data) ^ 0xA23777AC) & 0xFFFFFFFF
+    return data + checksum.to_bytes(4, sys.byteorder)
+
+
+def proof_verdict_mismatch(executable, root):
+    work = root / "proof-verdict-mismatch"
+    work.mkdir()
+    results = work / "results.txt"
+    results.mkdir()
+    args = command(executable, COMPOSITE, "-p") + ["--proof-storage=disk"]
+    original = run(args, work)
+    assert "Cannot write 'results.txt' file" in original.stdout, original.stdout
+    results.rmdir()
+
+    # A completed context retains the original verdict. Change one digit in
+    # the saved proof residue while keeping both the composite flag and CRC valid.
+    point = work / "candidate_0.ckpt"
+    original_digits = point.read_bytes()[:-4]
+    byte_in_digit = 0 if sys.byteorder == "little" else 3
+    for field, offset in (("res64", 8), ("old64", len(original_digits) - 4)):
+        digits = bytearray(original_digits)
+        digits[offset + byte_in_digit] ^= 1
+        point.write_bytes(with_checksum(digits))
+        result = run(args, work)
+        assert result.returncode == 1 and "Reported verdict or residue disagrees" in result.stdout, result.stdout
+        assert not results.exists()
+        print(f"PASS proof rejects a changed composite {field}", flush=True)
+
+
 def failure_cases(executable, cyclo, root):
     work = root / "cyclo"
     work.mkdir()
@@ -159,6 +191,7 @@ def main():
         root = Path(directory)
         known_answers(args.genefer.resolve(), args.oracle.resolve(), root)
         checkpoint_recovery(args.genefer.resolve(), root)
+        proof_verdict_mismatch(args.genefer.resolve(), root)
         failure_cases(args.genefer.resolve(), args.cyclo.resolve(), root)
 
 
