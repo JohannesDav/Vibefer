@@ -91,7 +91,6 @@ public:
 
 
 // #define ocl_debug		1
-#define ocl_fast_exec		1
 
 class oclObject
 {
@@ -628,13 +627,7 @@ protected:
 protected:
 	static void _setKernelArg(cl_kernel kernel, const cl_uint arg_index, const size_t arg_size, const void * const arg_value)
 	{
-#if !defined(ocl_fast_exec) || defined(ocl_debug)
-		cl_int err =
-#endif
-		clSetKernelArg(kernel, arg_index, arg_size, arg_value);
-#if !defined(ocl_fast_exec) || defined(ocl_debug)
-		oclFatal(err);
-#endif
+		oclFatal(clSetKernelArg(kernel, arg_index, arg_size, arg_value), "clSetKernelArg");
 	}
 
 protected:
