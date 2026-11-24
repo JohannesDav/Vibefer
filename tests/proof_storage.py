@@ -10,6 +10,7 @@ import pty
 import resource
 import select
 import signal
+import shutil
 import struct
 import subprocess
 import time
@@ -120,6 +121,19 @@ def main():
             print("PASS failed save leaves the previous checkpoint usable", flush=True)
         else:
             assert saved_bit == -1 and points == 128
+        if label == "proof-to-ram":
+            for damage in ("truncated", "bad-checksum"):
+                damaged = output / damage
+                shutil.copytree(work, damaged)
+                point = damaged / "candidate_0.ckpt"
+                data = point.read_bytes()
+                point.write_bytes(data[:-1] if damage == "truncated" else data[:-1] + bytes([data[-1] ^ 1]))
+                text = run(damaged, "restart", resume_args)
+                assert "Proof checkpoints are missing or invalid; restarting from the beginning." in text
+                assert "Resuming from a checkpoint." not in text
+                assert "is a probable prime" in (damaged / "results.txt").read_text()
+                assert (damaged / proof).read_bytes() == expected
+                print(f"PASS {damage} proof checkpoint restarts the run", flush=True)
         text = run(work, "resume", resume_args)
         assert "Resuming from a checkpoint." in text
         assert (work / proof).read_bytes() == expected
@@ -147,7 +161,7 @@ def main():
     assert "terminated." in text and not list(work.glob("*.ckpt"))
     assert (work / checkpoint).is_file()
     text = run(work, "proof-restart")
-    assert "Proof checkpoints are missing; restarting from the beginning." in text
+    assert "Proof checkpoints are missing or invalid; restarting from the beginning." in text
     assert "Resuming from a checkpoint." not in text
     assert "is a probable prime" in (work / "results.txt").read_text()
     assert (work / proof).read_bytes() == expected

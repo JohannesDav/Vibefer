@@ -564,6 +564,19 @@ private:
 		else writeProofCheckpoint(index);
 	}
 
+	bool validateProofCheckpoint(const size_t index)
+	{
+		if (_proofBuffer.contains(index)) return true;
+		const std::string filename = ckptFilename(index);
+		std::error_code error;
+		const uintmax_t size = std::filesystem::file_size(pio::resolve(filename), error);
+		const size_t expected = 3 * sizeof(uint32_t) + _gi->getSize() * sizeof(int32_t);
+		if (error || size != expected) return false;
+
+		file ckptFile(filename);
+		return ckptFile.exists() && _gi->read(ckptFile) && ckptFile.check_crc32();
+	}
+
 	void loadProofCheckpoint(const size_t index)
 	{
 		if (_proofBuffer.contains(index))
@@ -642,11 +655,8 @@ private:
 			// The context records the next bit to process. Only earlier points must exist.
 			for (int index = (ri < 0 ? 0 : ri / B_PL + 1); index <= i0 / B_PL; ++index)
 			{
-				const size_t point = static_cast<size_t>(index);
-				std::error_code error;
-				if (_proofBuffer.contains(point) ||
-					std::filesystem::is_regular_file(pio::resolve(ckptFilename(point).c_str()), error)) continue;
-				pio::print("Proof checkpoints are missing; restarting from the beginning.\n");
+				if (validateProofCheckpoint(static_cast<size_t>(index))) continue;
+				pio::print("Proof checkpoints are missing or invalid; restarting from the beginning.\n");
 				clearContext();
 				found = false;
 				break;

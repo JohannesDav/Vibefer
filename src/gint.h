@@ -152,13 +152,19 @@ public:
 		}
 	}
 
-	void read(file & cFile)
+	bool read(file & cFile)
 	{
-		uint32_t size; cFile.read(reinterpret_cast<char *>(&size), sizeof(size));
-		uint32_t base; cFile.read(reinterpret_cast<char *>(&base), sizeof(base));
-		if ((size_t(size) != _size) || (base != _base)) cFile.error("bad file");
-		cFile.read(reinterpret_cast<char *>(_d), _size * sizeof(int32_t));
+		uint32_t size, base;
+		if (!cFile.read(reinterpret_cast<char *>(&size), sizeof(size)) ||
+			!cFile.read(reinterpret_cast<char *>(&base), sizeof(base))) return false;
+		if ((size_t(size) != _size) || (base != _base))
+		{
+			cFile.error("bad file");
+			return false;
+		}
+		if (!cFile.read(reinterpret_cast<char *>(_d), _size * sizeof(int32_t))) return false;
 		_state = EState::Unbalanced;
+		return true;
 	}
 
 	void write(file & cFile)
