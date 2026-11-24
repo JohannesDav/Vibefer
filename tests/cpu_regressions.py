@@ -208,6 +208,24 @@ def failed_validation(executable, root):
     print("PASS failed Gerbicz–Li validation returns failure", flush=True)
 
 
+def witness_recheck(executable, root):
+    work = root / "witness-recheck"
+    work.mkdir()
+    fixture = checkpoint_fixture(executable, work, base=PRIME)
+    flags = struct.unpack_from("=i", fixture, 40)[0]
+    digits = 44 + 4 * flags
+    assert len(fixture) - digits - 4 == 4096 * 4
+    # An incorrect squaring may leave a stable but wrong residue. Resume from
+    # such a residue so both reads agree while the independent run disagrees.
+    (work / "candidate.ctxp").write_bytes(with_checksum(fixture[:digits] + bytes(4096 * 4)))
+    result = run(command(executable, PRIME, "-e"), work)
+    assert result.returncode == 1 and "Independent witness recomputation disagrees" in result.stdout, result.stdout
+    assert " is composite" not in result.stdout and " is prime" not in result.stdout
+    reports = work / "results.txt"
+    assert not reports.exists() or " is " not in reports.read_text()
+    print("PASS independent arithmetic rejects a wrong prime witness", flush=True)
+
+
 def failure_cases(executable, cyclo, root):
     work = root / "cyclo"
     work.mkdir()
@@ -262,6 +280,7 @@ def main():
         ordinary_checkpoint_candidate(args.genefer.resolve(), root)
         proof_verdict_mismatch(args.genefer.resolve(), root)
         failed_validation(args.genefer.resolve(), root)
+        witness_recheck(args.genefer.resolve(), root)
         failure_cases(args.genefer.resolve(), args.cyclo.resolve(), root)
 
 

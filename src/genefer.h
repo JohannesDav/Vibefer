@@ -1288,7 +1288,59 @@ private:
 		return EReturn::Success;
 	}
 
-	EReturn prime(const uint32_t b, double & time, bool & isPrime)
+	EReturn recheckComposite(const uint32_t b, const size_t device, const uint32_t witness, const mpz_t & exponent)
+	{
+		std::unique_ptr<transform> independent;
+#if defined(GPU)
+#if defined(GENEFER_AUTOMATIC_CUDA) || defined(GENEFER_AUTOMATIC_OPENCL)
+		independent.reset(transform::create_original_gpu(b, _n, _isBoinc, device, 1,
+			_boinc_platform_id, _boinc_device_id, false));
+#else
+		independent.reset(transform::create_gpu(b, _n, _isBoinc, device, 1,
+			_boinc_platform_id, _boinc_device_id, false));
+#endif
+#else
+		(void)device;
+		if (transform::implementations().find(" i32") != std::string::npos)
+		{
+			std::string implementation;
+			independent.reset(transform::create_cpu(b, _n, 1, "i32", 1, false, implementation));
+		}
+#endif
+		bool agrees;
+		if (independent)
+		{
+			// Restart the Fermat witness with the full exponent N - 1.
+			mpz_t power; mpz_init(power); mpz_mul_ui(power, exponent, b);
+			independent->set(1);
+			for (int i = static_cast<int>(mpz_sizeinbase(power, 2)) - 1; i >= 0; --i)
+			{
+				if (quitting()) { mpz_clear(power); return EReturn::Aborted; }
+				independent->squareMul(mpz_tstbit(power, mp_bitcnt_t(i)) ? int32_t(witness) : 1);
+			}
+			mpz_clear(power);
+			gint checked(_gi->getSize(), b);
+			independent->getInt(checked);
+			agrees = _gi->equals(checked);
+		}
+		else
+		{
+			// CPU targets without i32 still need an exact independent check.
+			mpz_t power, modulus, result;
+			mpz_inits(power, modulus, result, nullptr);
+			mpz_mul_ui(power, exponent, b);
+			mpz_add_ui(modulus, power, 1);
+			mpz_set_ui(result, witness);
+			mpz_powm(result, result, power, modulus);
+			agrees = mpz_cmp_ui(result, 1) != 0;
+			mpz_clears(power, modulus, result, nullptr);
+		}
+		if (quitting()) return EReturn::Aborted;
+		if (!agrees) throw std::runtime_error("Independent witness recomputation disagrees before reporting composite");
+		return EReturn::Success;
+	}
+
+	EReturn prime(const uint32_t b, const size_t device, double & time, bool & isPrime)
 	{
 		transform * const pTransform = _transform;
 		gint & gi = *_gi;
@@ -1378,6 +1430,8 @@ private:
 						checked.unbalance();
 						if (!std::equal(gi.data(), gi.data() + gi.getSize(), checked.data()))
 							throw std::runtime_error("Witness residue reads disagree before reporting composite");
+						const EReturn result = recheckComposite(b, device, a, exponent);
+						if (result != EReturn::Success) { mpz_clear(exponent); return result; }
 						isComposite = true;
 						std::ostringstream ss; ss << a << "^{N - 1} != 1." << std::endl;
 						clearline(); pio::print(ss.str()); pio::result(ss.str());
@@ -1721,7 +1775,7 @@ public:
 		else if (mode == EMode::Prime)
 		{
 			double time = 0; bool isPrime = false;
-			success = prime(b, time, isPrime);
+			success = prime(b, device, time, isPrime);
 			const double error = _transform->getError();
 			clearline();
 			std::ostringstream ss; ss << gfn(b, n);
