@@ -351,6 +351,24 @@ def witness_recheck(executable, root):
     print("PASS independent arithmetic rejects a wrong prime witness", flush=True)
 
 
+def default_proof_names(executable, cyclo, root):
+    work = root / "default-proof-names"
+    work.mkdir()
+    options = ["-n", "12", "-b", str(COMPOSITE)]
+    for engine in (executable, cyclo):
+        result = run([str(engine), "-p", *options], work)
+        assert result.returncode == 0, result.stdout
+    gfn = work / f"g12_{COMPOSITE}.proof"
+    assert gfn.exists() and (work / f"cyclo12_{COMPOSITE}.proof").exists()
+    before = gfn.read_bytes()
+    for engine, prefix in ((executable, "g"), (cyclo, "cyclo")):
+        result = run([str(engine), "-s", *options], work)
+        assert result.returncode == 0 and "ckey = " in result.stdout, result.stdout
+        assert (work / f"{prefix}12_{COMPOSITE}.cert").is_file()
+    assert gfn.read_bytes() == before
+    print("PASS GFN and cyclo use distinct default proof and certificate names", flush=True)
+
+
 def failure_cases(executable, cyclo, root):
     work = root / "cyclo"
     work.mkdir()
@@ -410,6 +428,7 @@ def main():
         failed_validation(args.genefer.resolve(), root)
         proof_validation_retry(args.genefer.resolve(), root)
         witness_recheck(args.genefer.resolve(), root)
+        default_proof_names(args.genefer.resolve(), args.cyclo.resolve(), root)
         failure_cases(args.genefer.resolve(), args.cyclo.resolve(), root)
 
 
