@@ -103,7 +103,7 @@ def main():
     expected = (output / proof).read_bytes()
     for label, stop, resume_args in (
         ("prp-to-disk", after_start, disk),
-        ("proof-to-ram", during_proof, []),
+        ("proof-to-ram", during_proof, ["--proof-storage=ram"]),
     ):
         work = output / label
         work.mkdir()
@@ -136,6 +136,8 @@ def main():
                 print(f"PASS {damage} proof checkpoint restarts the run", flush=True)
         text = run(work, "resume", resume_args)
         assert "Resuming from a checkpoint." in text
+        if label == "proof-to-ram":
+            assert ram in text
         assert (work / proof).read_bytes() == expected
         print("PASS", label, flush=True)
 
@@ -145,7 +147,9 @@ def main():
     lock_path = Path("/tmp") / f"vibefer-proof-buffer-{os.getuid()}"
     with lock_path.open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        assert "Proof checkpoints: disk (proof memory reservation unavailable)." in run(work, "auto")
+        assert "Proof checkpoints: disk (proof memory reservation unavailable)." in run(
+            work, "explicit-ram", ["--proof-storage=ram"]
+        )
     assert (work / proof).read_bytes() == expected
     print("PASS automatic disk fallback", flush=True)
 
