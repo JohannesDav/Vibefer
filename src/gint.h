@@ -108,8 +108,8 @@ public:
 
 		const size_t size = _size;
 		const int32_t base = static_cast<int32_t>(_base);
-		// Scaled residues can need either sign of the half-base digit at the wrap.
-		int32_t lower = -base / 2 + (scalar == 1);
+		// Only even bases have a half-base tie to break for scalar 1.
+		int32_t lower = -base / 2 + (scalar == 1 && base % 2 == 0);
 		int32_t * const d = _d;
 
 		int64_t f = 0;
