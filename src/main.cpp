@@ -392,8 +392,8 @@ public:
 			for (size_t n = 16; n <= 23; ++n)
 			{
 				const auto status = g.check(0, n, mode, device, nthreads, impl, depth);
-				if (status != genefer::EReturn::Success)
-					return !bBoinc && status == genefer::EReturn::Aborted ? 2 : EXIT_SUCCESS;
+				if (status == genefer::EReturn::Failed) return EXIT_FAILURE;
+				if (status == genefer::EReturn::Aborted) return bBoinc ? EXIT_SUCCESS : 2;
 			}
 			return EXIT_SUCCESS;
 		}

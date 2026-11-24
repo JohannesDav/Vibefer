@@ -92,11 +92,11 @@ def numeric_options(executable, root):
     print("PASS numeric device and thread options", flush=True)
 
 
-def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=False, context=None):
+def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=False, context=None, options=()):
     # A terminal makes the application's startup line visible before exit.
     master, terminal = pty.openpty()
     try:
-        process = subprocess.Popen(command(executable, base, mode), cwd=work,
+        process = subprocess.Popen(command(executable, base, mode) + list(options), cwd=work,
                                    stdout=terminal, stderr=terminal)
         os.close(terminal)
         terminal = None
@@ -351,6 +351,20 @@ def witness_recheck(executable, root):
     print("PASS independent arithmetic rejects a wrong prime witness", flush=True)
 
 
+def hardware_check_failure(executable, root):
+    work = root / "hardware-check-failure"
+    work.mkdir()
+    # The standard x64 CPU build starts -h at GFN-16, base 550,000,000.
+    checkpoint = checkpoint_fixture(executable, work, "-q", base=550_000_000,
+                                    options=("-n", "16", "-x", "i32"))
+    # Mark an incomplete state as finished, so benchmark validation fails.
+    data = checkpoint[:8] + struct.pack("=i", -1) + checkpoint[12:-4]
+    (work / "candidate.ctx").write_bytes(with_checksum(data))
+    result = run([str(executable), "-h", "-x", "i32", "-f", "candidate"], work)
+    assert result.returncode == 1 and "test failed!" in result.stdout, result.stdout
+    print("PASS hardware check returns failure on an invalid result", flush=True)
+
+
 def default_proof_names(executable, cyclo, root):
     work = root / "default-proof-names"
     work.mkdir()
@@ -428,6 +442,7 @@ def main():
         failed_validation(args.genefer.resolve(), root)
         proof_validation_retry(args.genefer.resolve(), root)
         witness_recheck(args.genefer.resolve(), root)
+        hardware_check_failure(args.genefer.resolve(), root)
         default_proof_names(args.genefer.resolve(), args.cyclo.resolve(), root)
         failure_cases(args.genefer.resolve(), args.cyclo.resolve(), root)
 
