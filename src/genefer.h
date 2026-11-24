@@ -291,7 +291,7 @@ private:
 		const std::string ctxFile = contextFilename(), oldCtxFile = ctxFile + ".old", newCtxFile = ctxFile + ".new";
 
 		{
-			file contextFile(newCtxFile, "wb", false);
+			file contextFile(newCtxFile, "wb", true);
 			int version = 3;
 #if defined(GPU)
 			version = -version;
@@ -404,8 +404,7 @@ private:
 		const std::string ctxFile = contextFilename() + "p", oldCtxFile = ctxFile + ".old", newCtxFile = ctxFile + ".new";
 
 		{
-			file contextFile(newCtxFile, "wb", false);
-			if (!contextFile.exists()) return;
+			file contextFile(newCtxFile, "wb", true);
 			auto write = [&](const auto & value) { return contextFile.write(reinterpret_cast<const char *>(&value), sizeof(value)); };
 			const int condSize = static_cast<int>(cond.size());
 			if (!write(primeContextVersion) || !write(b) || !write(_n) || !write(primeContextFamily)
