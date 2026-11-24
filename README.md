@@ -47,10 +47,10 @@ Every test still runs Gallot’s Gerbicz–Li error check. Two [optional checks]
 
 See [building and installing](doc/opencl.md) for build instructions and how to use this version with BOINC, including step-by-step instructions for [Ubuntu](doc/opencl.md#step-by-step-on-ubuntu) and [Windows 11](doc/opencl.md#step-by-step-on-windows-11).
 
-The executable, `geneferg`, takes the same options as Gallot’s GPU version, plus two optional check flags. For example, this tests 28000000<sup>2<sup>19</sup></sup> + 1 and writes the proof to `candidate.proof`:
+The executable, `vibeferg`, takes the same options as Gallot’s GPU version, plus two optional check flags. For example, this tests 28000000<sup>2<sup>19</sup></sup> + 1 and writes the proof to `candidate.proof`:
 
 ```sh
-./build/geneferg -n 19 -b 28000000 -p -f candidate
+./build/vibeferg -n 19 -b 28000000 -p -f candidate
 ```
 
 PrimeGrid does not distribute this version, so using it for PrimeGrid work means setting up BOINC to run it yourself.

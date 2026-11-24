@@ -2,6 +2,7 @@
 """Validate dependencies and assemble the two-file installation archives."""
 
 import argparse
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -62,11 +63,11 @@ def label():
 
 
 def package(platform):
-    executable = "geneferg.exe" if platform == "windows" else "geneferg"
+    executable = "vibeferg.exe" if platform == "windows" else "vibeferg"
     binary = Path("build") / executable
     inspect_binary(binary, platform)
     variant = "-opencl" if os.environ["GENEFER_VARIANT"] == "opencl" else ""
-    path = Path("dist") / ("genefer22-johannesdav" + variant + "-" + label() + "-" + platform + "-x64.zip")
+    path = Path("dist") / ("vibefer" + variant + "-" + label() + "-" + platform + "-x64.zip")
     path.parent.mkdir(exist_ok=True)
     template = Path("doc") / ("boinc-app_info-windows.xml" if platform == "windows" else "boinc-app_info.xml")
     # Explicit Unix permissions survive the Actions artifact and ZIP transports.
@@ -80,7 +81,39 @@ def package(platform):
     print("Packaged", path)
 
 
+def release_notes():
+    repo = os.environ["GITHUB_REPOSITORY"]
+    guide = ("opencl/doc/opencl.md" if os.environ["GENEFER_VARIANT"] == "opencl"
+             else "main/doc/cuda.md#installing-a-prebuilt-release")
+    root = "https://github.com/" + repo
+    Path("release-notes.md").write_text(
+        "Experimental build of Vibefer for NVIDIA GPUs. All changes were written by AI "
+        "and haven’t been independently reviewed. It is unofficial and not endorsed by Yves Gallot or PrimeGrid. "
+        "**Install at your own risk.**\n\n"
+        "See the [installation guide](" + root + "/blob/" + guide +
+        ") for how to set it up with BOINC.\n",
+        encoding="utf-8",
+    )
+
+
+def checksums():
+    paths = sorted(Path("dist").glob("*.zip"))
+    variant = "-opencl" if os.environ["GENEFER_VARIANT"] == "opencl" else ""
+    expected = {"vibefer" + variant + "-" + label() + "-" + platform + "-x64.zip"
+                for platform in ("windows", "linux")}
+    if {path.name for path in paths} != expected:
+        raise ValueError("Expected exactly the two platform archives")
+    Path("dist/SHA256SUMS").write_text("".join(
+        hashlib.sha256(path.read_bytes()).hexdigest() + "  " + path.name + "\n" for path in paths
+    ), encoding="utf-8")
+    release_notes()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("platform", choices=["windows", "linux"])
-    package(parser.parse_args().platform)
+    parser.add_argument("command", choices=["windows", "linux", "checksums"])
+    command = parser.parse_args().command
+    if command == "checksums":
+        checksums()
+    else:
+        package(command)

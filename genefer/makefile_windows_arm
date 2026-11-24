@@ -49,7 +49,7 @@ DEPS_TRANSFORM_CPUf64 = $(SRC_DIR)/transformCPUf64.h $(SRC_DIR)/transformCPUf64s
 DEPS_TRANSFORM_GPU = $(SRC_DIR)/transformGPU.h $(SRC_DIR)/ocl.h $(DEPS_COMMON)
 
 EXEC_CPU = $(BIN_DIR)/genefer_arm.exe
-EXEC_GPU = $(BIN_DIR)/geneferg_arm.exe
+EXEC_GPU = $(BIN_DIR)/vibeferg_arm.exe
 
 .PHONY: all clean_obj rebuild
 

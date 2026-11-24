@@ -1,10 +1,12 @@
 # Building and installing the OpenCL version
 
-This guide explains how to build the OpenCL version of `geneferg`, this fork’s GPU executable, and how to run it on PrimeGrid through BOINC. It has been tested on Linux and Windows 11, both on x86-64. For a quick setup, see the step-by-step guides for [Ubuntu](#step-by-step-on-ubuntu) and [Windows 11](#step-by-step-on-windows-11).
+This guide explains how to build the OpenCL version of `vibeferg`, this fork’s GPU executable, and how to run it on PrimeGrid through BOINC. It has been tested on Linux and Windows 11, both on x86-64. For a quick setup, see the step-by-step guides for [Ubuntu](#step-by-step-on-ubuntu) and [Windows 11](#step-by-step-on-windows-11).
+
+The manual **Build binaries** workflow provides Linux and Windows ZIPs under the `opencl-build-downloads` artifact. To install one, copy the executable and its `app_info.xml` into BOINC’s PrimeGrid directory while BOINC is stopped, as shown in the installation steps below.
 
 ## Requirements
 
-To build `geneferg`, you need:
+To build `vibeferg`, you need:
 
 - Git, Python 3.8 or newer and a C++17 compiler: GCC on Linux, or MinGW-w64 GCC from MSYS2 on Windows.
 - GMP development files, including the static library `libgmp.a`.
@@ -21,12 +23,12 @@ From a copy of this repository (on the `opencl` branch):
 python3 build.py --boinc /path/to/boinc
 ```
 
-`--boinc` is where the BOINC libraries are installed (`/usr` for Ubuntu’s package), or a BOINC source checkout where they have been built. To use `geneferg` from the command line only, use `--without-boinc` instead.
+`--boinc` is where the BOINC libraries are installed (`/usr` for Ubuntu’s package), or a BOINC source checkout where they have been built. To use `vibeferg` from the command line only, use `--without-boinc` instead.
 
-This writes `build/geneferg`, or `build/geneferg.exe` on Windows. The GPU code and settings are built into it, so it’s the only file you need. This tests 28000000<sup>2<sup>19</sup></sup> + 1 and writes the proof to `candidate.proof`:
+This writes `build/vibeferg`, or `build/vibeferg.exe` on Windows. The GPU code and settings are built into it, so it’s the only file you need. This tests 28000000<sup>2<sup>19</sup></sup> + 1 and writes the proof to `candidate.proof`:
 
 ```sh
-./build/geneferg -n 19 -b 28000000 -p -f candidate
+./build/vibeferg -n 19 -b 28000000 -p -f candidate
 ```
 
 Run it with no arguments to list all options.
@@ -73,7 +75,7 @@ From the `vibefer-opencl` directory, stop BOINC, copy the two files into its Pri
 
 ```bash
 sudo systemctl stop boinc-client
-sudo install -o boinc -g boinc -m 755 build/geneferg /var/lib/boinc/projects/www.primegrid.com/
+sudo install -o boinc -g boinc -m 755 build/vibeferg /var/lib/boinc/projects/www.primegrid.com/
 sudo install -o boinc -g boinc -m 644 doc/boinc-app_info.xml /var/lib/boinc/projects/www.primegrid.com/app_info.xml
 sudo systemctl start boinc-client
 ```
@@ -84,12 +86,14 @@ BOINC’s event log (in BOINC Manager, Tools > Event Log) should now show `Found
 
 ### Updating
 
+When upgrading from `geneferg`, replace that filename with `vibeferg` wherever it appears in your local `app_info.xml` after stopping BOINC and before restarting it.
+
 ```bash
 cd ~/vibefer-opencl
 git pull
 python3 build.py --boinc /usr
 sudo systemctl stop boinc-client
-sudo install -o boinc -g boinc -m 755 build/geneferg /var/lib/boinc/projects/www.primegrid.com/
+sudo install -o boinc -g boinc -m 755 build/vibeferg /var/lib/boinc/projects/www.primegrid.com/
 sudo systemctl start boinc-client
 ```
 
@@ -140,10 +144,10 @@ In the same window:
 git clone --branch opencl https://github.com/JohannesDav/vibefer.git vibefer-opencl
 cd vibefer-opencl
 python build.py --boinc ../boinc
-./build/geneferg.exe
+./build/vibeferg.exe
 ```
 
-The last command lists the options and the OpenCL devices it finds. Check that your NVIDIA GPU is among them. The built `geneferg.exe` doesn’t need MSYS2 to run.
+The last command lists the options and the OpenCL devices it finds. Check that your NVIDIA GPU is among them. The built `vibeferg.exe` doesn’t need MSYS2 to run.
 
 ### 3. Install it in BOINC
 
@@ -154,7 +158,7 @@ In BOINC Manager’s Advanced View, choose **File > Shut down connected client**
 
 ```bash
 project=/c/ProgramData/BOINC/projects/www.primegrid.com
-cp build/geneferg.exe "$project/"
+cp build/vibeferg.exe "$project/"
 cp doc/boinc-app_info-windows.xml "$project/app_info.xml"
 ```
 
@@ -170,7 +174,7 @@ git pull
 python build.py --boinc ../boinc
 ```
 
-Then shut down BOINC as in step 3, copy `build/geneferg.exe` into the PrimeGrid directory again, and reopen BOINC Manager.
+Then shut down BOINC as in step 3 and copy `build/vibeferg.exe` into the PrimeGrid directory again. If your local `app_info.xml` refers to `geneferg.exe`, replace that filename with `vibeferg.exe` wherever it appears before reopening BOINC Manager.
 
 ### Going back to the official version
 
@@ -189,8 +193,8 @@ On slow storage, such as USB drives or network shares, consider `--proof-storage
 Every test runs Gallot’s Gerbicz–Li check, which detects computation errors while the test runs. Two optional checks use Gallot’s original OpenCL code to verify the finished result independently of this fork’s arithmetic:
 
 ```sh
-./build/geneferg -n 19 -b 28000000 -p -f candidate --check-certificate
-./build/geneferg -n 19 -b 28000000 -p -f candidate --check-tail
+./build/vibeferg -n 19 -b 28000000 -p -f candidate --check-certificate
+./build/vibeferg -n 19 -b 28000000 -p -f candidate --check-tail
 ```
 
 - `--check-certificate` converts the proof into a certificate and checks it. It uses Gallot’s certificate-generation and checking routines.
@@ -247,11 +251,11 @@ GENEFER_VARIANT=opencl bash .github/scripts/cpu-checks.sh
 The runtime checks test a built Linux executable using PoCL, an OpenCL implementation that runs on the CPU, so they also don't need a GPU. They include small known primes and composites, and several error cases. On Ubuntu 24.04 x86-64, they need `g++ make python3 libgmp-dev ocl-icd-opencl-dev pocl-opencl-icd`:
 
 ```sh
-bash .github/scripts/runtime-checks-linux.sh build/geneferg
+bash .github/scripts/runtime-checks-linux.sh build/vibeferg
 ```
 
 The tests for the optimized GPU paths need an NVIDIA GPU and are run manually. They compare the arithmetic with GMP and the proof files with the original code, and test resuming and BOINC behavior. For example, `tests/known_primes.py` runs a proven prime and a composite through the optimized arithmetic:
 
 ```sh
-python3 tests/known_primes.py --executable build/geneferg --output known-primes
+python3 tests/known_primes.py --executable build/vibeferg --output known-primes
 ```

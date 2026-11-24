@@ -78,8 +78,9 @@ def numeric_options(executable, root):
     for index, args in enumerate((["--nthreads", "8"], ["--nthreads8"], ["--nthreads=8"])):
         work = root / f"threads-option-{index}"
         work.mkdir()
-        result = run(command(executable, COMPOSITE, "-q") + args + ["-x", "sse2"], work)
-        assert result.returncode == 0 and "8 thread(s)" in result.stdout, result.stdout
+        # The thread pool spin-waits, so a full calculation oversubscribes small CI runners.
+        checkpoint_fixture(executable, work, "-q", options=args + ["-x", "sse2"],
+                           startup_marker=b"8 thread(s)")
     for args in (["--device", "1"], ["--device1"], ["--device=1"]):
         result = run([str(executable), *args], root)
         assert result.returncode == 0, result.stdout
@@ -92,7 +93,8 @@ def numeric_options(executable, root):
     print("PASS numeric device and thread options", flush=True)
 
 
-def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=False, context=None, options=()):
+def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=False,
+                       context=None, options=(), startup_marker=b"thread(s)"):
     # A terminal makes the application's startup line visible before exit.
     master, terminal = pty.openpty()
     try:
@@ -103,7 +105,7 @@ def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=Fals
         try:
             output = bytearray()
             deadline = time.monotonic() + 10
-            while b"thread(s)" not in output:
+            while startup_marker not in output:
                 remaining = max(0, deadline - time.monotonic())
                 assert select.select([master], [], [], remaining)[0], output
                 output.extend(os.read(master, 4096))
