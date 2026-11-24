@@ -1710,7 +1710,13 @@ public:
 		const bool emptyMainFilename = _mainFilename.empty();
 		if (emptyMainFilename)
 		{
-			std::ostringstream ss; ss << "g" << n << "_" << b;
+			std::ostringstream ss;
+#if defined(CYCLO)
+			ss << "cyclo";
+#else
+			ss << "g";
+#endif
+			ss << n << "_" << b;
 			_mainFilename = ss.str();
 		}
 
