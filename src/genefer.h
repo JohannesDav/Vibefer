@@ -1621,7 +1621,7 @@ private:
 			if(value.data()[j]<0 || uint32_t(value.data()[j])>=value.getBase())
 				throw std::runtime_error("Noncanonical verification integer");
 	}
-	EReturn extraChecks(uint32_t base,uint32_t exponent,size_t device,const mpz_t &power,const bool expected_prp) {
+	EReturn extraChecks(uint32_t base,uint32_t exponent,size_t device,const mpz_t &power,const bool expected_prp, uint64_t expected_pkey) {
 		deleteTransform();
 		_transform=transform::create_original_gpu(base,exponent,_isBoinc,device,4,
 												   _boinc_platform_id,_boinc_device_id,false);
@@ -1693,6 +1693,7 @@ private:
 			if(result!=EReturn::Success) return result;
 			result=check(seconds,checked_key);
 			if(result!=EReturn::Success) return result;
+			if(proof_key!=expected_pkey) throw std::runtime_error("Proof key differs from reported result");
 			if(certificate_key!=checked_key) throw std::runtime_error("Certificate keys differ");
 			if(prp!=expected_prp) throw std::runtime_error("Certificate verdict differs from reported result");
 			pio::print("Extra certificate verification passed using original OpenCL arithmetic.\n");
@@ -1852,7 +1853,7 @@ public:
 				success = proof(exponent, depth, testTime, validTime, proofTime, isPrp, pkey, res64, old64);
 #if defined(GENEFER_AUTOMATIC_OPENCL)
 				if(success==EReturn::Success && (_extra_certificate || _extra_tail)) {
-					try { success=extraChecks(b,n,device,exponent,isPrp); }
+					try { success=extraChecks(b,n,device,exponent,isPrp,pkey); }
 					catch(const std::exception &error) { pio::error(error.what()); success=EReturn::Failed; }
 				}
 #endif
