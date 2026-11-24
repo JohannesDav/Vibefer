@@ -74,6 +74,24 @@ def known_answers(executable, oracle, root):
             print(f"PASS known answer {base} {mode}", flush=True)
 
 
+def numeric_options(executable, root):
+    for index, args in enumerate((["--nthreads", "8"], ["--nthreads8"], ["--nthreads=8"])):
+        work = root / f"threads-option-{index}"
+        work.mkdir()
+        result = run(command(executable, COMPOSITE, "-q") + args + ["-x", "sse2"], work)
+        assert result.returncode == 0 and "8 thread(s)" in result.stdout, result.stdout
+    for args in (["--device", "1"], ["--device1"], ["--device=1"]):
+        result = run([str(executable), *args], root)
+        assert result.returncode == 0, result.stdout
+    for args, option in (
+        (["-d", "-1"], "--device"), (["--device=q"], "--device"), (["--device="], "--device"),
+        (["--nthreads=-2"], "--nthreads"), (["--nthreads8x"], "--nthreads"), (["--nthreads"], "--nthreads"),
+    ):
+        result = run([str(executable), *args], root)
+        assert result.returncode == 1 and f"{option} requires a non-negative integer" in result.stdout, result.stdout
+    print("PASS numeric device and thread options", flush=True)
+
+
 def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=False):
     # A terminal makes the application's startup line visible before exit.
     master, terminal = pty.openpty()
@@ -276,6 +294,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="gfn-regressions-") as directory:
         root = Path(directory)
         known_answers(args.genefer.resolve(), args.oracle.resolve(), root)
+        numeric_options(args.genefer.resolve(), root)
         checkpoint_recovery(args.genefer.resolve(), root)
         ordinary_checkpoint_candidate(args.genefer.resolve(), root)
         proof_verdict_mismatch(args.genefer.resolve(), root)

@@ -971,7 +971,9 @@ public:
 		const bool is_boinc_platform = isBoinc && (boinc_device_id != 0) && (boinc_platform_id != 0);
 		const platform eng_platform = is_boinc_platform ? platform(boinc_platform_id, boinc_device_id) : platform();
 
-		_pEngine.reset(new engines<RNS_SIZE, is32>(eng_platform, is_boinc_platform ? 0 : device, static_cast<int>(n), isBoinc, num_regs, verbose));
+		const size_t index = is_boinc_platform ? 0 : device;
+		if (index >= eng_platform.getDeviceCount()) throw std::runtime_error("OpenCL device index out of range");
+		_pEngine.reset(new engines<RNS_SIZE, is32>(eng_platform, index, static_cast<int>(n), isBoinc, num_regs, verbose));
 
 		std::ostringstream src;
 
