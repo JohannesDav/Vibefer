@@ -191,7 +191,7 @@ private:
 	}
 
 public:
-	void run(int argc, char * argv[])
+	int run(int argc, char * argv[])
 	{
 		std::vector<std::string> args;
 		for (int i = 1; i < argc; ++i) args.push_back(argv[i]);
@@ -229,7 +229,7 @@ public:
 			{
 				pio::print(header(args));
 				if (bBoinc) boinc_finish(EXIT_SUCCESS);
-				return;
+				return EXIT_SUCCESS;
 			}
 		}
 
@@ -391,9 +391,11 @@ public:
 
 			for (size_t n = 16; n <= 23; ++n)
 			{
-				if (g.check(0, n, mode, device, nthreads, impl, depth) != genefer::EReturn::Success) return;
+				const auto status = g.check(0, n, mode, device, nthreads, impl, depth);
+				if (status != genefer::EReturn::Success)
+					return !bBoinc && status == genefer::EReturn::Aborted ? 2 : EXIT_SUCCESS;
 			}
-			return;
+			return EXIT_SUCCESS;
 		}
 
 		if ((mode == genefer::EMode::None) || (b == 0) || (n == 0))
@@ -469,7 +471,7 @@ public:
 #else
 			g.displaySupportedImplementations();
 #endif
-			return;
+			return EXIT_SUCCESS;
 		}
 
 		genefer::EReturn ret;
@@ -488,7 +490,9 @@ public:
 		{
 			std::ostringstream ss; ss << std::endl;
 			pio::print(ss.str());
+			if (!bBoinc) return 2;
 		}
+		return EXIT_SUCCESS;
 	}
 };
 
@@ -499,13 +503,11 @@ int main(int argc, char * argv[])
 	try
 	{
 		application & app = application::getInstance();
-		app.run(argc, argv);
+		return app.run(argc, argv);
 	}
 	catch (const std::runtime_error & e)
 	{
 		pio::error(e.what(), true);
 		return EXIT_FAILURE;
 	}
-
-	return EXIT_SUCCESS;
 }
