@@ -14,5 +14,14 @@ g++ -std=c++17 -O2 -Isrc -Ibuild/tests/generated "tests/${backend}_profiles.cpp"
 g++ -std=c++17 -O2 -Isrc -Ibuild/tests/generated "tests/${backend}_handoff.cpp" \
     "src/${backend}/kernel.cpp" -lgmp -o build/tests/handoff
 ./build/tests/handoff
-g++ -std=c++17 -O2 -Isrc tests/cpu_scalar.cpp -lgmp -o build/tests/cpu-scalar
+if [[ "$(g++ -dumpmachine)" == x86_64-* ]]; then
+    mkdir -p build/tests/cpu
+    cpu_objects=(transform_{sse2,sse4,avx,fma,512,i32}.o)
+    make -C build/tests/cpu -f ../../../genefer/makefile_linux_x64 SRC_DIR=../../../src \
+        BOINC= CC='g++ -std=c++17 -pthread' -j2 "${cpu_objects[@]}"
+    g++ -std=c++17 -O2 -pthread -DTEST_CPU_TRANSFORMS -Isrc tests/cpu_scalar.cpp \
+        "${cpu_objects[@]/#/build/tests/cpu/}" -lgmp -o build/tests/cpu-scalar
+else
+    g++ -std=c++17 -O2 -Isrc tests/cpu_scalar.cpp -lgmp -o build/tests/cpu-scalar
+fi
 ./build/tests/cpu-scalar

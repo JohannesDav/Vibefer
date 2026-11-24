@@ -108,7 +108,8 @@ public:
 		bwdo(w);
 	}
 
-	finline Vc mul_carry(const Vc & f_prev, const double g, const double b, const double b_inv, const double t2_n)
+	template<bool Checked = false>
+	finline Vc mul_carry(const Vc & f_prev, const double g, const double b, const double b_inv, const double t2_n, const double limit = 0, bool * const accepted = nullptr)
 	{
 		Vc f = f_prev;
 		const Vd<N> vg = Vd<N>::broadcast(g), vb = Vd<N>::broadcast(b), vb_inv = Vd<N>::broadcast(b_inv), vt2_n = Vd<N>::broadcast(t2_n);
@@ -117,6 +118,8 @@ public:
 		{
 			Vc & zi = z[i];
 			const Vc of = zi.mulS(vt2_n), o = of.round();
+			if constexpr (Checked)
+				if (o.abs().anyAbove(Vd<N>::broadcast(limit))) { *accepted = false; return f; }
 			const Vc o_b = o.mulS(vb_inv).round();
 			const Vc f_i = f.addmulS(o.submulS(o_b, vb), vg);
 			const Vc f_b = f_i.mulS(vb_inv).round();
@@ -127,7 +130,8 @@ public:
 		return f;
 	}
 
-	finline Vc mul_carry(const Vc & f_prev, const double g, const double b, const double b_inv, const double t2_n, Vc & err)
+	template<bool Checked = false>
+	finline Vc mul_carry(const Vc & f_prev, const double g, const double b, const double b_inv, const double t2_n, Vc & err, const double limit = 0, bool * const accepted = nullptr)
 	{
 		Vc f = f_prev;
 		const Vd<N> vg = Vd<N>::broadcast(g), vb = Vd<N>::broadcast(b), vb_inv = Vd<N>::broadcast(b_inv), vt2_n = Vd<N>::broadcast(t2_n);
@@ -137,6 +141,8 @@ public:
 			Vc & zi = z[i];
 			const Vc of = zi.mulS(vt2_n), o = of.round();
 			err.max(Vc(of - o).abs());
+			if constexpr (Checked)
+				if (o.abs().anyAbove(Vd<N>::broadcast(limit))) { *accepted = false; return f; }
 			const Vc o_b = o.mulS(vb_inv).round();
 			const Vc f_i = f.addmulS(o.submulS(o_b, vb), vg);
 			const Vc f_b = f_i.mulS(vb_inv).round();
@@ -147,8 +153,9 @@ public:
 		return f;
 	}
 
+	template<bool Checked = false>
 	finline Vc mul_carry_i(const Vc & f_prev, const double g, const double b, const double b_inv, const double t2_n,
-						   const double sb, const double sb_inv, const double sbh, const double sbl)
+						   const double sb, const double sb_inv, const double sbh, const double sbl, const double limit = 0, bool * const accepted = nullptr)
 	{
 		Vc f = f_prev;
 		const Vd<N> vg = Vd<N>::broadcast(g), vb = Vd<N>::broadcast(b), vb_inv = Vd<N>::broadcast(b_inv), vt2_n = Vd<N>::broadcast(t2_n);
@@ -159,6 +166,8 @@ public:
 			Vc & z0 = z[2 * i + 0]; Vc & z1 = z[2 * i + 1];
 
 			const Vc of = z0.addmulS(z1, vsb).mulS(vt2_n), o = of.round();
+			if constexpr (Checked)
+				if (o.abs().anyAbove(Vd<N>::broadcast(limit))) { *accepted = false; return f; }
 			const Vc o_b = o.mulS(vb_inv).round();
 			const Vc f_i = f.addmulS(o.submulS(o_b, vb), vg);
 			const Vc f_b = f_i.mulS(vb_inv).round();
@@ -172,8 +181,9 @@ public:
 		return f;
 	}
 
+	template<bool Checked = false>
 	finline Vc mul_carry_i(const Vc & f_prev, const double g, const double b, const double b_inv, const double t2_n,
-						   const double sb_inv, const double sbh, const double sbl, Vc & err)
+						   const double sb_inv, const double sbh, const double sbl, Vc & err, const double limit = 0, bool * const accepted = nullptr)
 	{
 		Vc f = f_prev;
 		const Vd<N> vg = Vd<N>::broadcast(g), vb = Vd<N>::broadcast(b), vb_inv = Vd<N>::broadcast(b_inv), vt2_n = Vd<N>::broadcast(t2_n);
@@ -186,6 +196,8 @@ public:
 			const Vc of = z0.addmulS(z1, vsbl).addmulS(z1, vsbh).mulS(vt2_n), o = of.round();
 			err.max(Vc(of - o).abs());
 
+			if constexpr (Checked)
+				if (o.abs().anyAbove(Vd<N>::broadcast(limit))) { *accepted = false; return f; }
 			const Vc o_b = o.mulS(vb_inv).round();
 			const Vc f_i = f.addmulS(o.submulS(o_b, vb), vg);
 			const Vc f_b = f_i.mulS(vb_inv).round();
@@ -281,7 +293,8 @@ private:
 	const size_t _mem_size, _cache_size;
 	const bool _checkError;
 	double _sbh, _sbl;
-	double _error, _g;
+	double _error, _g, _scalar_limit = 0;
+	bool _scalar_accepted[64];
 	double _err_array[64];
 	char * const _mem;
 	Vc * const _z_copy;
@@ -613,7 +626,8 @@ public:
 		}
 	}
 
-	void pass2_0(const size_t thread_id)
+	template<bool Checked>
+	void pass2_0_impl(const size_t thread_id)
 	{
 		const Complex * const w122i = (Complex *)&_mem[wOffset];
 		Vc * const z = (Vc *)&_mem[zOffset];
@@ -622,6 +636,8 @@ public:
 		const bool checkError = _checkError;
 
 		Vc err = Vc(0.0);
+		bool &accepted = _scalar_accepted[thread_id];
+		if constexpr (Checked) accepted = true;
 
 		const size_t num_threads = _num_threads;
 		const size_t l_min = thread_id * n_io_s / num_threads, l_max = (thread_id + 1 == num_threads) ? n_io_s : (thread_id + 1) * n_io_s / num_threads;
@@ -638,15 +654,32 @@ public:
 				z8.transpose_in();
 
 				const Vc f_prev = (lh != l_min) ? f[j] : Vc(0.0);
-				if (!checkError)
+				if constexpr (Checked)
 				{
-					if (IBASE) f[j] = z8.mul_carry_i(f_prev, g, b, b_inv, 2.0 / N, sb, sb_inv, sbh, sbl);
-					else f[j] = z8.mul_carry(f_prev, g, b, b_inv, 2.0 / N);
+					if (!checkError)
+					{
+						if (IBASE) f[j] = z8.template mul_carry_i<true>(f_prev, g, b, b_inv, 2.0 / N, sb, sb_inv, sbh, sbl, _scalar_limit, &accepted);
+						else f[j] = z8.template mul_carry<true>(f_prev, g, b, b_inv, 2.0 / N, _scalar_limit, &accepted);
+					}
+					else
+					{
+						if (IBASE) f[j] = z8.template mul_carry_i<true>(f_prev, g, b, b_inv, 2.0 / N, sb_inv, sbh, sbl, err, _scalar_limit, &accepted);
+						else f[j] = z8.template mul_carry<true>(f_prev, g, b, b_inv, 2.0 / N, err, _scalar_limit, &accepted);
+					}
+					if (!accepted) return;
 				}
 				else
 				{
-					if (IBASE) f[j] = z8.mul_carry_i(f_prev, g, b, b_inv, 2.0 / N, sb_inv, sbh, sbl, err);
-					else f[j] = z8.mul_carry(f_prev, g, b, b_inv, 2.0 / N, err);
+					if (!checkError)
+					{
+						if (IBASE) f[j] = z8.mul_carry_i(f_prev, g, b, b_inv, 2.0 / N, sb, sb_inv, sbh, sbl);
+						else f[j] = z8.mul_carry(f_prev, g, b, b_inv, 2.0 / N);
+					}
+					else
+					{
+						if (IBASE) f[j] = z8.mul_carry_i(f_prev, g, b, b_inv, 2.0 / N, sb_inv, sbh, sbl, err);
+						else f[j] = z8.mul_carry(f_prev, g, b, b_inv, 2.0 / N, err);
+					}
 				}
 
 				if (lh != l_min) z8.transpose_out();
@@ -658,6 +691,8 @@ public:
 
 		_err_array[thread_id] = err.max();
 	}
+	void pass2_0(const size_t thread_id) { pass2_0_impl<false>(thread_id); }
+	void pass2_scalar(const size_t thread_id) { pass2_0_impl<true>(thread_id); }
 
 	void pass2_1(const size_t thread_id)
 	{
@@ -903,22 +938,62 @@ public:
 		_error = err;
 	}
 
-	void squareDup(const bool dup) override
-	{
-		squareMul(dup ? 2 : 1);
-	}
-
-	void squareMul(const int32_t a) override
+private:
+	void squareOrdinary(const int32_t a)
 	{
 		const size_t num_threads = _num_threads;
-		// Only the squaring loop's usual multipliers use the floating-point carry.
-		const bool exact_scalar = a != 1 && a != 2;
-		_g = exact_scalar ? 1.0 : static_cast<double>(a);
+		_g = static_cast<double>(a);
 
 		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass1);
 		pass1(0); if (num_threads > 1) _parallel.wait();
 		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2_0);
 		pass2_0(0); if (num_threads > 1) _parallel.wait();
+		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2_1);
+		pass2_1(0); if (num_threads > 1) _parallel.wait();
+
+		error_update();
+	}
+
+public:
+	void squareDup(const bool dup) override
+	{
+		squareOrdinary(dup ? 2 : 1);
+	}
+
+	void squareMul(const int32_t a) override
+	{
+		if (a == 1 || a == 2)
+		{
+			squareOrdinary(a);
+			return;
+		}
+
+		_scalar_limit = cpuScalarCarryLimit(getB(), a);
+		if (_scalar_limit == 0)
+		{
+			squareOrdinary(1);
+			multiplyScalarExactly(a);
+			return;
+		}
+		const size_t num_threads = _num_threads;
+		_g = static_cast<double>(a);
+
+		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass1);
+		pass1(0); if (num_threads > 1) _parallel.wait();
+		// Save the transformed square so a rejected carry can be replayed
+		// with multiplier 1, followed by the exact host-side multiplication.
+		std::copy_n(reinterpret_cast<const Vc *>(&_mem[zOffset]), zSize / sizeof(Vc), _z_copy);
+		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2Scalar);
+		pass2_scalar(0); if (num_threads > 1) _parallel.wait();
+		const bool exact_scalar = !std::all_of(_scalar_accepted, _scalar_accepted + num_threads,
+			[](bool accepted) { return accepted; });
+		if (exact_scalar)
+		{
+			std::copy_n(_z_copy, zSize / sizeof(Vc), reinterpret_cast<Vc *>(&_mem[zOffset]));
+			_g = 1.0;
+			for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2_0);
+			pass2_0(0); if (num_threads > 1) _parallel.wait();
+		}
 		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2_1);
 		pass2_1(0); if (num_threads > 1) _parallel.wait();
 
