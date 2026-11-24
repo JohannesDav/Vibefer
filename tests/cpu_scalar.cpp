@@ -130,8 +130,33 @@ static bool check_transforms()
 }
 #endif
 
+static bool check_residue_comparison()
+{
+	constexpr size_t size = 1u << 16;
+	constexpr uint32_t base = 620000000;
+	gint one(size, base), other(size, base);
+	std::fill_n(one.data(), size, 0);
+	std::fill_n(other.data(), size, 0);
+	one.data()[0] = 1;
+	other.data()[2] = 1;
+	if (one.gethash64() != other.gethash64() || one.equals(other)) return false;
+
+	// The same residue in noncanonical digits still compares equal.
+	other.reset();
+	other.data()[2] = 0;
+	other.data()[1] = 1;
+	other.data()[0] = 1 - static_cast<int32_t>(base);
+	return one.equals(other);
+}
+
 int main()
 {
+	if (!check_residue_comparison())
+	{
+		std::fputs("FAIL canonical residue comparison\n", stderr);
+		return EXIT_FAILURE;
+	}
+	std::puts("PASS canonical residue comparison rejects the Gerbicz–Li hash collision");
 	constexpr int32_t max = std::numeric_limits<int32_t>::max();
 	constexpr int32_t min = std::numeric_limits<int32_t>::min();
 	// One odd product just above 2^53 and one just below it.

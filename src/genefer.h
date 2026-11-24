@@ -731,13 +731,25 @@ private:
 		return EReturn::Success;
 	}
 
+	// Compare both residues in canonical digit form. A zero Gerbicz–Li
+	// accumulator is invalid even if both readbacks contain it.
+	bool compareValidationResidue(const size_t reg)
+	{
+		gint & gi = *_gi;
+		gint expected(gi.getSize(), gi.getBase());
+		_transform->getInt(gi);
+		_transform->copy(0, reg);
+		_transform->getInt(expected);
+		return gi.equals(expected) &&
+			std::any_of(gi.data(), gi.data() + gi.getSize(), [](const int32_t digit) { return digit != 0; });
+	}
+
 	// Gerbicz-Li error checking
 	// in: reg_0 is 2^exponent and reg_1 is d(t)
 	// out: return valid/invalid
 	EReturn GL(const mpz_t & exponent, const int B_GL, double & validTime)
 	{
 		transform * const pTransform = _transform;
-		gint & gi = *_gi;
 
 		clearline(); pio::display("Validating...\r");
 
@@ -784,12 +796,7 @@ private:
 		pTransform->mul(1);
 
 		// d(t)^{2^B} * 2^res ?= d(t + 1)
-		pTransform->getInt(gi);
-		const uint64_t h1=gi.gethash64();
-		pTransform->copy(0,2);
-		pTransform->getInt(gi);
-		const uint64_t h2=gi.gethash64();
-		const bool success=h1==h2;
+		const bool success = compareValidationResidue(2);
 
 		validTime = chrono.getElapsedTime();
 		return success ? EReturn::Success : EReturn::Failed;
@@ -1177,13 +1184,7 @@ private:
 			pTransform->mul(1);
 
 			// u(0) * d(t)^{2^L} ?= d(t + 1)
-			pTransform->getInt(gi);
-			const uint64_t h1 = gi.gethash64();
-			pTransform->copy(0, 3);
-			pTransform->getInt(gi);
-			const uint64_t h2 = gi.gethash64();
-
-			if (h1 != h2) { mpz_clear(p2); return EReturn::Failed; }
+			if (!compareValidationResidue(3)) { mpz_clear(p2); return EReturn::Failed; }
 		}
 
 		// 2^p2
@@ -1271,13 +1272,7 @@ private:
 		pTransform->mul(1);
 
 		// d(t)^{2^GL} * 2^res ?= d(t + 1)
-		pTransform->getInt(gi);
-		const uint64_t h1 = gi.gethash64();
-		pTransform->copy(0, 2);
-		pTransform->getInt(gi);
-		const uint64_t h2 = gi.gethash64();
-
-		if (h1 != h2) return EReturn::Failed;
+		if (!compareValidationResidue(2)) return EReturn::Failed;
 
 		time = chrono.getElapsedTime();
 		return EReturn::Success;

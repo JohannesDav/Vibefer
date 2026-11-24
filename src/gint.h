@@ -205,6 +205,14 @@ public:
 		return bOne;
 	}
 
+	bool equals(gint & other)
+	{
+		if (_size != other._size || _base != other._base) return false;
+		unbalance();
+		other.unbalance();
+		return std::equal(_d, _d + _size, other._d);
+	}
+
 	uint64_t gethash64()
 	{
 		unbalance();
