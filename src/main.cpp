@@ -160,6 +160,7 @@ private:
 		ss << "  -b <b>                      base of the GFN (1024 <= b <= 2000000000)" << std::endl;
 		ss << "  -q                          quick test" << std::endl;
 		ss << "  -p                          full test: a proof is generated" << std::endl;
+		ss << "  --proof-storage=ram         use RAM for proof checkpoints when available (default)" << std::endl;
 		ss << "  --proof-storage=disk        disable host RAM buffering of proof checkpoints" << std::endl;
 		ss << "  -s                          server job: convert the proof into a certificate and a 64-bit key" << std::endl;
 		ss << "  -c                          check certificate: a 64-bit key is generated (must be identical to server key)" << std::endl;
@@ -258,8 +259,9 @@ public:
 #endif
 
 			if (arg == "--proof-storage=disk") disk_proof_storage = true;
+			else if (arg == "--proof-storage=ram") disk_proof_storage = false;
 			else if (arg.rfind("--proof-storage", 0) == 0)
-				throw std::runtime_error("Expected --proof-storage=disk");
+				throw std::runtime_error("Expected --proof-storage=ram or --proof-storage=disk");
 
 			if ((arg.substr(0, 2) == "-b") && (arg.substr(0, 3) != "-bo"))
 			{
