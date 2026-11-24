@@ -188,6 +188,7 @@ public:
     }
     virtual ~cuda_device()
     {
+        if(context_) cuCtxSetCurrent(context_);
         try { flush(); } catch(...) {}
         if(stream_) cuStreamSynchronize(stream_);
         for(auto &entry:batches_) if(entry.second) cuGraphExecDestroy(entry.second);
@@ -230,9 +231,18 @@ public:
                 throw;
             }
             capturing_=false;
-            cuda_check(cuStreamEndCapture(stream_,&graph));
-            cuda_check(cuGraphInstantiate(&squares_[bit],graph,0));
-            remember(bit,graph);
+            CUgraphExec square{};
+            try {
+                cuda_check(cuStreamEndCapture(stream_,&graph));
+                cuda_check(cuGraphInstantiate(&square,graph,0));
+                remember(bit,graph);
+            } catch (...) {
+                nodes_[bit].clear();
+                if(square) (void)cuGraphExecDestroy(square);
+                if(graph) (void)cuGraphDestroy(graph);
+                throw;
+            }
+            squares_[bit]=square;
         }
         mask_|=bit<<pending_;
         if(++pending_==8) flush();

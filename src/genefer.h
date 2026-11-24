@@ -1029,7 +1029,12 @@ private:
 			const size_t i = size_t(1) << (depth - k);
 			for (size_t j = 0; j < L; j += 2 * i) mpz_mul_ui(w[i + j], w[j], q);
 
-			if (quitting()) return EReturn::Aborted;
+			if (quitting())
+			{
+				for (size_t j = 0; j < L; ++j) mpz_clear(w[j]);
+				delete[] w;
+				return EReturn::Aborted;
+			}
 		}
 
 		proofFile.check_crc32();
@@ -1417,7 +1422,7 @@ private:
 
 			for (size_t i = 0; i < pfb.size(); ++i)
 			{
-				if (quitting()) return EReturn::Aborted;
+				if (quitting()) { mpz_clear(exponent); return EReturn::Aborted; }
 
 				if (!cond[i])
 				{
