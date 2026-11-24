@@ -972,6 +972,7 @@ private:
 		}
 #endif
 		const EReturn rGL = GL(exponent, B_GL, validTime);
+		if (rGL == EReturn::Failed) clearContext();
 		if (rGL != EReturn::Success) return rGL;
 		return PL(depth, proofTime, pkey, isPrp, res64, old64);
 	}

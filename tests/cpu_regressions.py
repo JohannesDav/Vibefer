@@ -289,6 +289,50 @@ def failed_validation(executable, root):
     print("PASS failed Gerbicz–Li validation returns failure", flush=True)
 
 
+def proof_validation_retry(executable, root):
+    work = root / "proof-validation-retry"
+    work.mkdir()
+    results = work / "results.txt"
+    results.mkdir()
+    args = command(executable, PRIME, "-p") + ["-x", "i32"]
+    first = run(args + ["--proof-storage=disk"], work)
+    assert "Cannot write 'results.txt' file" in first.stdout, first.stdout
+    results.rmdir()
+    proof = (work / "candidate.proof").read_bytes()
+    checkpoint = work / "candidate.ctx"
+    original = checkpoint.read_bytes()
+    assert struct.unpack_from("=i", original, 8) == (-1,)
+    registers = original[32:-4]
+    assert len(registers) % 2 == 0
+    # The context CRC stays valid, but the check accumulator is wrong.
+    residue = registers[:len(registers) // 2]
+    damaged = with_checksum(original[:32] + residue + residue)
+    points = list(work.glob("*.ckpt"))
+    assert points
+
+    for label, switches in (("disk", ["--proof-storage=disk"]), ("ram", [])):
+        trial = work / label
+        trial.mkdir()
+        for point in points:
+            shutil.copyfile(point, trial / point.name)
+        for name in ("candidate.ctx", "candidate.ctx.old"):
+            (trial / name).write_bytes(damaged)
+
+        result = run(args + switches, trial)
+        assert result.returncode == 1 and "validation failed!" in result.stdout, result.stdout
+        if label == "ram":
+            assert "Proof checkpoints: RAM (" in result.stdout, result.stdout
+        assert "Resuming from a checkpoint." in result.stdout, result.stdout
+        assert not list(trial.glob("candidate.ctx*"))
+        assert not (trial / "results.txt").exists()
+
+        retry = run(args + switches, trial)
+        assert retry.returncode == 0 and "Resuming from a checkpoint." not in retry.stdout, retry.stdout
+        verdict(trial, PRIME, "a probable prime")
+        assert (trial / "candidate.proof").read_bytes() == proof
+        print(f"PASS {label} proof retries cleanly after validation failure", flush=True)
+
+
 def witness_recheck(executable, root):
     work = root / "witness-recheck"
     work.mkdir()
@@ -364,6 +408,7 @@ def main():
         proof_verdict_mismatch(args.genefer.resolve(), root)
         certificate_checkpoint(args.genefer.resolve(), root)
         failed_validation(args.genefer.resolve(), root)
+        proof_validation_retry(args.genefer.resolve(), root)
         witness_recheck(args.genefer.resolve(), root)
         failure_cases(args.genefer.resolve(), args.cyclo.resolve(), root)
 
