@@ -109,11 +109,24 @@ public:
 private:
 #if defined(GPU)
 	void createTransformGPU(const uint32_t b, const uint32_t n, const size_t device, const size_t num_regs,
-							const bool verbose = true, const bool full = true)
+							const bool verbose = true, const bool full = true, const bool original = false)
 	{
 		deleteTransform();
 		std::string profile;
-		_transform = transform::create_gpu(b, n, _isBoinc, device, num_regs, _boinc_platform_id, _boinc_device_id, verbose, &profile);
+#if defined(GENEFER_AUTOMATIC_CUDA) || defined(GENEFER_AUTOMATIC_OPENCL)
+		if (original)
+		{
+			_transform = transform::create_original_gpu(b, n, _isBoinc, device, num_regs,
+				_boinc_platform_id, _boinc_device_id, verbose);
+		}
+		else
+#else
+		(void)original;
+#endif
+		{
+			_transform = transform::create_gpu(b, n, _isBoinc, device, num_regs,
+				_boinc_platform_id, _boinc_device_id, verbose, &profile);
+		}
 		if (verbose && (full || !profile.empty()))
 		{
 			std::ostringstream ss; ss << profile;
@@ -1313,13 +1326,8 @@ private:
 	{
 		std::unique_ptr<transform> independent;
 #if defined(GPU)
-#if defined(GENEFER_AUTOMATIC_CUDA) || defined(GENEFER_AUTOMATIC_OPENCL)
-		independent.reset(transform::create_original_gpu(b, _n, _isBoinc, device, 1,
-			_boinc_platform_id, _boinc_device_id, false));
-#else
 		independent.reset(transform::create_gpu(b, _n, _isBoinc, device, 1,
 			_boinc_platform_id, _boinc_device_id, false));
-#endif
 #else
 		(void)device;
 		if (transform::implementations().find(" i32") != std::string::npos)
@@ -1749,7 +1757,7 @@ public:
 				num_regs = _legacyProofRegisters = registers;
 		}
 		(void)nthreads; (void)impl;
-		createTransformGPU(b, n, device, num_regs);
+		createTransformGPU(b, n, device, num_regs, true, true, mode == EMode::Prime);
 #else
 		bool checkError =
 #if defined(CYCLO)
