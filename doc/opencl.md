@@ -182,6 +182,8 @@ Vibefer keeps intermediate proof checkpoints in host RAM when there is enough av
 
 To save checkpoints to disk throughout the task, add `--proof-storage=disk` to the existing `<cmdline>` in the relevant `app_version` of your local `app_info.xml`, then restart BOINC. The same option works for standalone runs.
 
+On slow storage, such as USB drives or network shares, consider `--proof-storage=disk` for GFN-22 and larger.
+
 ## Optional extra checks
 
 Every test runs Gallot’s Gerbicz–Li check, which detects computation errors while the test runs. Two optional checks use Gallot’s original OpenCL code to verify the finished result independently of this fork’s arithmetic:
