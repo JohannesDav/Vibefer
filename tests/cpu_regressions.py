@@ -74,7 +74,7 @@ def known_answers(executable, oracle, root):
             print(f"PASS known answer {base} {mode}", flush=True)
 
 
-def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE):
+def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=False):
     # A terminal makes the application's startup line visible before exit.
     master, terminal = pty.openpty()
     try:
@@ -90,7 +90,12 @@ def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE):
                 assert select.select([master], [], [], remaining)[0], output
                 output.extend(os.read(master, 4096))
             process.send_signal(signal.SIGINT)
-            assert process.wait(timeout=10) == 0
+            assert process.wait(timeout=10) == int(failure)
+            if failure:
+                while b"cannot open file" not in output:
+                    assert select.select([master], [], [], 1)[0], output
+                    output.extend(os.read(master, 4096))
+                return
         finally:
             if process.poll() is None:
                 process.kill()
@@ -215,6 +220,19 @@ def failure_cases(executable, cyclo, root):
         assert result.returncode != 0 and message in result.stdout, result.stdout
         assert not list(work.iterdir())
     print("PASS cyclo rejects unsupported options", flush=True)
+
+    for mode in ("-q", "-e"):
+        work = root / f"checkpoint-open-failure{mode}"
+        work.mkdir()
+        checkpoint = "candidate.ctx" if mode == "-q" else "candidate.ctxp"
+        (work / (checkpoint + ".new")).mkdir()
+        if mode == "-q":
+            result = run(command(executable, COMPOSITE, mode), work)
+            assert result.returncode == 1 and "cannot open file" in result.stdout, result.stdout
+        else:
+            checkpoint_fixture(executable, work, mode, failure=True)
+        assert not (work / checkpoint).exists() and not (work / "results.txt").exists()
+        print(f"PASS checkpoint open failure {mode}", flush=True)
 
     work = root / "result-write-failure"
     work.mkdir()
