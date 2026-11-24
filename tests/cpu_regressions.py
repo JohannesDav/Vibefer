@@ -92,7 +92,7 @@ def numeric_options(executable, root):
     print("PASS numeric device and thread options", flush=True)
 
 
-def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=False):
+def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=False, context=None):
     # A terminal makes the application's startup line visible before exit.
     master, terminal = pty.openpty()
     try:
@@ -122,7 +122,9 @@ def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=Fals
         if terminal is not None:
             os.close(terminal)
         os.close(master)
-    return (work / ("candidate.ctxp" if mode == "-e" else "candidate.ctx")).read_bytes()
+    if context is None:
+        context = "candidate.ctxp" if mode == "-e" else "candidate.ctx"
+    return (work / context).read_bytes()
 
 
 def checkpoint_recovery(executable, root):
@@ -176,6 +178,23 @@ def ordinary_checkpoint_candidate(executable, root):
         assert ("invalid context" in result.stdout) != resume, result.stdout
         verdict(work, base, "a probable prime" if base == PRIME else "composite")
         print(f"PASS ordinary checkpoint {label}", flush=True)
+
+
+def checkpoint_paths(executable, root):
+    for mode, name in (("-q", "candidate.ctx"), ("-e", "candidate.ctxp")):
+        work = root / f"checkpoint-paths{mode}"
+        work.mkdir()
+        for suffix in ("", ".old", ".new"):
+            (work / (name + suffix)).write_text(f"<soft_link>stored{suffix}</soft_link>\n")
+        (work / "stored").write_bytes(b"old checkpoint")
+        checkpoint_fixture(executable, work, mode, context="stored")
+        assert (work / "stored.old").read_bytes() == b"old checkpoint"
+        assert not (work / "stored.new").exists()
+        result = run(command(executable, COMPOSITE, mode), work)
+        assert result.returncode == 0 and "Resuming from a checkpoint." in result.stdout, result.stdout
+        assert not (work / "stored").exists() and not (work / "stored.old").exists()
+        assert (work / name).read_text() == "<soft_link>stored</soft_link>\n"
+    print("PASS checkpoint rotation and cleanup resolve soft links", flush=True)
 
 
 def proof_verdict_mismatch(executable, root):
@@ -297,6 +316,7 @@ def main():
         numeric_options(args.genefer.resolve(), root)
         checkpoint_recovery(args.genefer.resolve(), root)
         ordinary_checkpoint_candidate(args.genefer.resolve(), root)
+        checkpoint_paths(args.genefer.resolve(), root)
         proof_verdict_mismatch(args.genefer.resolve(), root)
         failed_validation(args.genefer.resolve(), root)
         witness_recheck(args.genefer.resolve(), root)

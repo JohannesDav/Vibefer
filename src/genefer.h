@@ -225,7 +225,7 @@ private:
 		const uintmax_t registerBytes = (uintmax_t(1) << _n) * sizeof(uint32_t);
 		constexpr size_t overhead = 4 * sizeof(int) + sizeof(double) + sizeof(uint32_t);
 		std::error_code error;
-		const uintmax_t bytes = std::filesystem::file_size(filename, error);
+		const uintmax_t bytes = std::filesystem::file_size(pio::resolve(filename), error);
 		return !error && (bytes == overhead + 2 * registers * registerBytes
 						  || bytes == overhead + 3 * registers * registerBytes);
 	}
@@ -308,16 +308,17 @@ private:
 			contextFile.write_crc32();
 		}
 
-		std::remove(oldCtxFile.c_str());
+		const std::string current = pio::resolve(ctxFile), backup = pio::resolve(oldCtxFile);
+		std::remove(backup.c_str());
 
 		struct stat s;
-		if ((stat(ctxFile.c_str(), &s) == 0) && (std::rename(ctxFile.c_str(), oldCtxFile.c_str()) != 0))	// file exists and cannot rename it
+		if ((stat(current.c_str(), &s) == 0) && (std::rename(current.c_str(), backup.c_str()) != 0))	// file exists and cannot rename it
 		{
 			pio::error("cannot save context");
 			return;
 		}
 
-		if (std::rename(newCtxFile.c_str(), ctxFile.c_str()) != 0)
+		if (std::rename(pio::resolve(newCtxFile).c_str(), current.c_str()) != 0)
 		{
 			pio::error("cannot save context");
 			return;
@@ -421,16 +422,17 @@ private:
 			contextFile.write_crc32();
 		}
 
-		std::remove(oldCtxFile.c_str());
+		const std::string current = pio::resolve(ctxFile), backup = pio::resolve(oldCtxFile);
+		std::remove(backup.c_str());
 
 		struct stat s;
-		if ((stat(ctxFile.c_str(), &s) == 0) && (std::rename(ctxFile.c_str(), oldCtxFile.c_str()) != 0))	// file exists and cannot rename it
+		if ((stat(current.c_str(), &s) == 0) && (std::rename(current.c_str(), backup.c_str()) != 0))	// file exists and cannot rename it
 		{
 			pio::error("cannot save context");
 			return;
 		}
 
-		if (std::rename(newCtxFile.c_str(), ctxFile.c_str()) != 0)
+		if (std::rename(pio::resolve(newCtxFile).c_str(), current.c_str()) != 0)
 		{
 			pio::error("cannot save context");
 			return;
@@ -440,8 +442,8 @@ private:
 	void clearContext() const
 	{
 		const std::string ctxFile = contextFilename();
-		std::remove(ctxFile.c_str());
-		std::remove(std::string(ctxFile + ".old").c_str());
+		std::remove(pio::resolve(ctxFile).c_str());
+		std::remove(pio::resolve(ctxFile + ".old").c_str());
 	}
 
 	bool boincQuitRequest(const BOINC_STATUS & status)
@@ -1792,8 +1794,8 @@ public:
 			{
 				pio::result(ss.str());
 				const std::string ctxFile = contextFilename() + "p";
-				std::remove(ctxFile.c_str());
-				std::remove((ctxFile + ".old").c_str());
+				std::remove(pio::resolve(ctxFile).c_str());
+				std::remove(pio::resolve(ctxFile + ".old").c_str());
 			}
 		}
 		else
