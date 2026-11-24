@@ -35,6 +35,18 @@ int main() {
             }
         }
     }
+    kernel_plan invalid_grid;
+    invalid_grid.length = 1u << 16;
+    invalid_grid.pack = 1;
+    invalid_grid.outer = 16;
+    invalid_grid.chunk = 1;
+    invalid_grid.inner_blocks = 32;
+    try {
+        generate_kernel(1026, 16, invalid_grid);
+        throw std::runtime_error("Invalid packed launch grid admitted");
+    } catch (const std::invalid_argument &error) {
+        if (std::string(error.what()) != "Packed launch grid does not divide evenly") throw;
+    }
     const uint32_t bases[] = {620000000, 520000000, 100000000, 30000000,
                               8000000, 2800000, 660000, 200000};
     for (const auto &profile : embedded::device_profiles)

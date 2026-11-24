@@ -247,6 +247,9 @@ generated_kernel generate_kernel(uint32_t base, unsigned exponent, const kernel_
     require(plan.chunk && plan.chunk <= 32 && !(plan.chunk & (plan.chunk - 1)), "Unsupported outer grouping");
     require(plan.inner_blocks && plan.inner_blocks <= 32 && !(plan.inner_blocks & (plan.inner_blocks - 1)),
             "Unsupported inner grouping");
+    // Each work group handles a whole group of transforms from one prime channel.
+    require(inner % (4 * plan.chunk) == 0 && plan.outer % plan.inner_blocks == 0,
+            "Packed launch grid does not divide evenly");
     require(uint64_t(plan.outer) * plan.chunk * 16 <= 49152 && plan.outer / 4 * plan.chunk <= 1024,
             "Outer resource limit");
     require(uint64_t(inner) * 4 * plan.inner_blocks <= 49152 && inner / 16 * plan.inner_blocks <= 1024,
