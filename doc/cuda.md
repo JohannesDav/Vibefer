@@ -213,7 +213,7 @@ Shut down BOINC as in step 3, delete `app_info.xml` from the PrimeGrid directory
 
 Vibefer keeps intermediate proof checkpoints in host RAM when there is enough available for the tasks BOINC is running, and switches to disk if memory gets tight. It saves buffered checkpoints on a clean quit so BOINC can resume. A crash, power loss or GPU driver reset can make a task restart from its last disk checkpoint.
 
-To save checkpoints to disk throughout the task, add `--proof-storage=disk` to the existing `<cmdline>` in the relevant `app_version` of your local `app_info.xml`, then restart BOINC. The same option works for standalone runs.
+The supplied `app_info.xml` templates use `--proof-storage=ram`. To save checkpoints to disk throughout the task, change `ram` to `disk` in every `<cmdline>` line of your local `app_info.xml`, then restart BOINC. Both options also work for standalone runs.
 
 On slow storage, such as USB drives or network shares, consider `--proof-storage=disk` for GFN-22 and larger.
 

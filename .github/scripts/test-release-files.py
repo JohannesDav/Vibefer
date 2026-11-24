@@ -108,7 +108,7 @@ class ReleaseChecks(unittest.TestCase):
                 self.assertEqual(version.findtext("plan_class"), APP_PLANS[app])
                 expected_platform = "windows_x86_64" if platform == "windows" else "x86_64-pc-linux-gnu"
                 self.assertEqual(version.findtext("platform"), expected_platform)
-                self.assertIn("-boinc", version.findtext("cmdline", "").split())
+                self.assertEqual(version.findtext("cmdline", "").split(), ["-boinc", "--proof-storage=ram"])
                 self.assertEqual(version.findtext("coproc/type"), "NVIDIA")
                 self.assertEqual(float(version.findtext("coproc/count")), 1)
                 reference, = version.findall("file_ref")
