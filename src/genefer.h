@@ -70,7 +70,7 @@ private:
 	transform * _transform = nullptr;
 	gint * _gi = nullptr;
 	std::string _mainFilename;
-	uint32_t _n = 0;
+	uint32_t _n = 0, _certificateId = 0;
 	int _print_range = 0, _print_i = 0;
 	bool _print_sr = true;
 
@@ -240,18 +240,24 @@ private:
 #if defined(GPU)
 		version = -version;
 #endif
-		if (version != 1 && version != 3) return -2;
+		if (version != 1 && version != 3 && !(version == 4 && where == 1)) return -2;
 		int rwhere = 0;
 		if (!contextFile.read(reinterpret_cast<char *>(&rwhere), sizeof(rwhere))) return -2;
 		if (rwhere != where) return -2;
 		if (!contextFile.read(reinterpret_cast<char *>(&i), sizeof(i))) return -2;
 		if (!contextFile.read(reinterpret_cast<char *>(&elapsedTime), sizeof(elapsedTime))) return -2;
-		if (version == 3)
+		if (version >= 3)
 		{
 			uint32_t savedB, savedN;
 			if (!contextFile.read(reinterpret_cast<char *>(&savedB), sizeof(savedB)) ||
 				!contextFile.read(reinterpret_cast<char *>(&savedN), sizeof(savedN))) return -2;
 			if (savedB != _gi->getBase() || savedN != _n) return -3;
+		}
+		if (version == 4)
+		{
+			uint32_t savedId;
+			if (!contextFile.read(reinterpret_cast<char *>(&savedId), sizeof(savedId))) return -2;
+			if (savedId != _certificateId) return -3;
 		}
 		const bool legacy = version == 1 && legacyProof && _legacyProofRegisters &&
 			hasLegacyProofContext(filename, _legacyProofRegisters);
@@ -271,7 +277,7 @@ private:
 			std::ostringstream ss; ss << ctxFile << ": invalid context";
 			pio::error(ss.str());
 		}
-		// A backup without a candidate header cannot override a known mismatch.
+		// A legacy backup cannot override a known candidate or certificate mismatch.
 		if (error == -3) return false;
 		ctxFile += ".old";
 		if (error < 0)
@@ -292,7 +298,7 @@ private:
 
 		{
 			file contextFile(newCtxFile, "wb", true);
-			int version = 3;
+			int version = where == 1 ? 4 : 3;
 #if defined(GPU)
 			version = -version;
 #endif
@@ -303,6 +309,7 @@ private:
 			const uint32_t b = _gi->getBase();
 			if (!contextFile.write(reinterpret_cast<const char *>(&b), sizeof(b))) return;
 			if (!contextFile.write(reinterpret_cast<const char *>(&_n), sizeof(_n))) return;
+			if (where == 1 && !contextFile.write(reinterpret_cast<const char *>(&_certificateId), sizeof(_certificateId))) return;
 			const size_t num_reg = (where == 0) ? 2 : 3;
 			_transform->saveContext(contextFile, num_reg);
 			contextFile.write_crc32();
@@ -1093,6 +1100,17 @@ private:
 		transform * const pTransform = _transform;
 		gint & gi = *_gi;
 
+		int B = 0;
+		mpz_t p2; mpz_init(p2);
+		{
+			file certFile(certFilename(), "rb", true);
+			int version = 0; certFile.read(reinterpret_cast<char *>(&version), sizeof(version));
+			certFile.read(reinterpret_cast<char *>(&B), sizeof(B));
+			gi.read(certFile);
+			certFile.read(p2);
+			certFile.check_crc32();
+			_certificateId = certFile.content_crc32();
+		}
 		int ri = 0; double restoredTime = 0;
 		const bool found = readContext(1, ri, restoredTime);
 		if (!found)
@@ -1105,16 +1123,6 @@ private:
 			pio::print(ss.str());
 		}
 
-		int B = 0;
-		mpz_t p2; mpz_init(p2);
-		{
-			file certFile(certFilename(), "rb", true);
-			int version = 0; certFile.read(reinterpret_cast<char *>(&version), sizeof(version));
-			certFile.read(reinterpret_cast<char *>(&B), sizeof(B));
-			gi.read(certFile);
-			certFile.read(p2);
-			certFile.check_crc32();
-		}
 		const int p2size = static_cast<int>(mpz_sizeinbase(p2, 2));
 
 		// Gerbicz test for v2^{2^B} and Gerbicz-Li test for 2^p2
