@@ -10,8 +10,26 @@ public:
     using transformGPUs::setZi;
 };
 
+class kernel_argument_probe : public device {
+public:
+    using device::_setKernelArg;
+};
+
 int main()
 {
+    bool rejected = false;
+    try {
+        kernel_argument_probe::_setKernelArg(nullptr, 0, 0, nullptr);
+    } catch (const std::runtime_error &error) {
+        const std::string message(error.what());
+        rejected = message.find("clSetKernelArg") != std::string::npos &&
+                   message.find("CL_INVALID_KERNEL") != std::string::npos;
+    }
+    if (!rejected) {
+        std::cerr << "Expected an OpenCL kernel argument error\n";
+        return 1;
+    }
+    std::cout << "PASS OpenCL kernel argument failure\n";
     constexpr uint32_t n = 19, base = 3500000, size = 1u << n;
     // The largest convolution coefficient overflows a signed 64-bit integer
     // when doubled. In the residue ring the input is base^size - 1 == -2.
