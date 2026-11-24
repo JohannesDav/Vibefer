@@ -26,9 +26,9 @@ constexpr wide carry_bound(uint32_t base) {
 constexpr bool packed_multiply_handoff(uint32_t base, unsigned exponent) {
     if (base < 2) return false;
     const wide digits = digit_bound(base);
-    // Ordinary mul() is not doubled. Its carry crosses three digit divisions
-    // before reaching the last digit, which must fit the packed encoder.
-    const wide carry = ceil_div((wide(1) << exponent) * digits * digits, base - 1) + 1;
+    // The encoder also receives ordinary checkpoints written after a doubled
+    // squaring. Its last digit must fit after three carry divisions.
+    const wide carry = ceil_div((wide(2) << exponent) * digits * digits, base - 1) + 1;
     return wide(base - 1) + ceil_div(carry, wide(base) * base * base) <= digits;
 }
 constexpr bool supported(uint32_t base) {
