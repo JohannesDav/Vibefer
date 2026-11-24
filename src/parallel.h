@@ -29,7 +29,7 @@ template<class T>
 class parallel
 {
 public:
-	enum class EFunction : unsigned char { None = 0, Pass1 = 1, Pass1mul = 2, Pass2_0 = 3, Pass2_1 = 4, Pass1multiplicand = 5 };
+	enum class EFunction : unsigned char { None = 0, Pass1 = 1, Pass1mul = 2, Pass2_0 = 3, Pass2_1 = 4, Pass1multiplicand = 5, Pass2Scalar = 6 };
 
 private:
 	struct task
@@ -137,6 +137,7 @@ private:
 				else if (fn == EFunction::Pass2_0) _transform->pass2_0(thread_id + 1);
 				else if (fn == EFunction::Pass2_1) _transform->pass2_1(thread_id + 1);
 				else if (fn == EFunction::Pass1multiplicand) _transform->pass1multiplicand(thread_id + 1);
+				else if (fn == EFunction::Pass2Scalar) _transform->pass2_scalar(thread_id + 1);
 
 				task.set(EFunction::None);
 			}

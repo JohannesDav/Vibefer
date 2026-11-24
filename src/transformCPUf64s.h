@@ -176,7 +176,49 @@ public:
 		bwdo(w);
 	}
 
-	finline void mul_carry(const Vcp & f_prev, Vcp & f_new, const double g, const double b, const double b_inv, const double t2_n)
+	template<bool Checked>
+	finline static bool reduce(Vc & zli, Vc & zhi, const Vc & ol, const Vc & oh, Vc & fl, Vc & fh,
+		const Vd<N> & vg, const Vd<N> & vb, const Vd<N> & vb_inv,
+		const Vd<N> & vsplit, const Vd<N> & vsplit_inv, double limit, double direct_limit)
+	{
+		Vc rl_b, rh_b;
+		bool split_scalar = false;
+		if constexpr (Checked)
+		{
+			const Vc magnitudes = Vc(ol.abs()).max(oh.abs());
+			split_scalar = magnitudes.anyAbove(Vd<N>::broadcast(direct_limit));
+			if (split_scalar && magnitudes.anyAbove(Vd<N>::broadcast(limit)))
+			{
+				return false;
+			}
+		}
+		if (split_scalar)
+		{
+			rl_b = cpuScalarCarry(ol, fl, vg, vb, vb_inv);
+			rh_b = cpuScalarCarry(oh, fh, vg, vb, vb_inv);
+		}
+		else
+		{
+			fl = fl.addmulS(ol, vg); fh = fh.addmulS(oh, vg);
+			const Vc fl_b = fl.mulS(vb_inv).round(), fh_b = fh.mulS(vb_inv).round();
+			rl_b = fl.submulS(fl_b, vb); rh_b = fh.submulS(fh_b, vb);
+			fl = fl_b; fh = fh_b;
+		}
+
+		// Each remainder has magnitude < b. With split = 2^20,
+		// their reconstruction is < b*(1+split) < 2^51 and adds
+		// at most split+2 to the carry. The next pass combines
+		// the two carries below 2^51, with room for the next digit.
+		rl_b = rl_b.addmulS(rh_b, vsplit);
+		const Vc frl = rl_b.mulS(vb_inv).round(); rl_b = rl_b.submulS(frl, vb); fl += frl;
+
+		const Vc h = rl_b.mulS(vsplit_inv).round().mulS(vsplit);
+		zli = rl_b - h; zhi = h;
+		return true;
+	}
+
+	template<bool Checked = false>
+	finline void mul_carry(const Vcp & f_prev, Vcp & f_new, const double g, const double b, const double b_inv, const double t2_n, const double limit = 0, bool * const accepted = nullptr, const double direct_limit = 0)
 	{
 		Vc fl = f_prev.l, fh = f_prev.h;
 		const Vd<N> vg = Vd<N>::broadcast(g), vb = Vd<N>::broadcast(b), vb_inv = Vd<N>::broadcast(b_inv);
@@ -188,23 +230,18 @@ public:
 			Vc & zli = z[i].l; Vc & zhi = z[i].h;
 			const Vc ol = zli.mulS(vt2_n).round(), oh = zhi.mulS(vt2_n_split_inv).round();
 
-			fl = fl.addmulS(ol, vg); fh = fh.addmulS(oh, vg);
-			Vc fl_b = fl.mulS(vb_inv).round(), rl_b = fl.submulS(fl_b, vb);
-			const Vc fh_b = fh.mulS(vb_inv).round(), rh_b = fh.submulS(fh_b, vb);
-			fh = fh_b;
-
-			rl_b = rl_b.addmulS(rh_b, vsplit);
-			const Vc frl = rl_b.mulS(vb_inv).round(); rl_b = rl_b.submulS(frl, vb); fl_b += frl;
-			fl = fl_b;
-
-			const Vc h = rl_b.mulS(vsplit_inv).round().mulS(vsplit);
-			zli = rl_b - h; zhi = h;
+			if (!reduce<Checked>(zli, zhi, ol, oh, fl, fh, vg, vb, vb_inv, vsplit, vsplit_inv, limit, direct_limit))
+			{
+				*accepted = false;
+				return;
+			}
 		}
 
 		f_new.l = fl; f_new.h = fh;
 	}
 
-	finline void mul_carry(const Vcp & f_prev, Vcp & f_new, const double g, const double b, const double b_inv, const double t2_n, Vc & err)
+	template<bool Checked = false>
+	finline void mul_carry(const Vcp & f_prev, Vcp & f_new, const double g, const double b, const double b_inv, const double t2_n, Vc & err, const double limit = 0, bool * const accepted = nullptr, const double direct_limit = 0)
 	{
 		Vc fl = f_prev.l, fh = f_prev.h;
 		const Vd<N> vg = Vd<N>::broadcast(g), vb = Vd<N>::broadcast(b), vb_inv = Vd<N>::broadcast(b_inv);
@@ -217,17 +254,11 @@ public:
 			const Vc ofl = zli.mulS(vt2_n), ofh = zhi.mulS(vt2_n_split_inv), ol = ofl.round(), oh = ofh.round();
 			err.max(Vc(ofl - ol).abs()); err.max(Vc(ofh - oh).abs());
 
-			fl = fl.addmulS(ol, vg); fh = fh.addmulS(oh, vg);
-			Vc fl_b = fl.mulS(vb_inv).round(), rl_b = fl.submulS(fl_b, vb);
-			const Vc fh_b = fh.mulS(vb_inv).round(), rh_b = fh.submulS(fh_b, vb);
-			fh = fh_b;
-
-			rl_b = rl_b.addmulS(rh_b, vsplit);
-			const Vc frl = rl_b.mulS(vb_inv).round(); rl_b = rl_b.submulS(frl, vb); fl_b += frl;
-			fl = fl_b;
-
-			const Vc h = rl_b.mulS(vsplit_inv).round().mulS(vsplit);
-			zli = rl_b - h; zhi = h;
+			if (!reduce<Checked>(zli, zhi, ol, oh, fl, fh, vg, vb, vb_inv, vsplit, vsplit_inv, limit, direct_limit))
+			{
+				*accepted = false;
+				return;
+			}
 		}
 
 		f_new.l = fl; f_new.h = fh;
@@ -299,7 +330,8 @@ private:
 	const double _b, _b_inv;
 	const size_t _mem_size, _cache_size;
 	const bool _checkError;
-	double _error, _g;
+	double _error, _g, _scalar_limit = 0, _scalar_direct_limit = 0;
+	bool _scalar_accepted[64];
 	double _err_array[64];
 	char * const _mem;
 	Vcp * const _z_copy;
@@ -631,7 +663,8 @@ public:
 		}
 	}
 
-	void pass2_0(const size_t thread_id)
+	template<bool Checked>
+	void pass2_0_impl(const size_t thread_id)
 	{
 		const Complex * const w122i = (Complex *)&_mem[wOffset];
 		Vcp * const z = (Vcp *)&_mem[zOffset];
@@ -640,6 +673,8 @@ public:
 		const bool checkError = _checkError;
 
 		Vc err = Vc(0.0);
+		bool &accepted = _scalar_accepted[thread_id];
+		if constexpr (Checked) accepted = true;
 
 		const size_t num_threads = _num_threads;
 		const size_t l_min = thread_id * n_io_s / num_threads, l_max = (thread_id + 1 == num_threads) ? n_io_s : (thread_id + 1) * n_io_s / num_threads;
@@ -657,8 +692,17 @@ public:
 
 				Vcp zero; zero.l = zero.h = Vc(0.0);
 				const Vcp f_prev = (lh != l_min) ? f[j] : zero;
-				if (!checkError) z8.mul_carry(f_prev, f[j], g, b, b_inv, 2.0 / N);
-				else             z8.mul_carry(f_prev, f[j], g, b, b_inv, 2.0 / N, err);
+				if constexpr (Checked)
+				{
+					if (!checkError) z8.template mul_carry<true>(f_prev, f[j], g, b, b_inv, 2.0 / N, _scalar_limit, &accepted, _scalar_direct_limit);
+					else             z8.template mul_carry<true>(f_prev, f[j], g, b, b_inv, 2.0 / N, err, _scalar_limit, &accepted, _scalar_direct_limit);
+					if (!accepted) return;
+				}
+				else
+				{
+					if (!checkError) z8.mul_carry(f_prev, f[j], g, b, b_inv, 2.0 / N);
+					else             z8.mul_carry(f_prev, f[j], g, b, b_inv, 2.0 / N, err);
+				}
 
 				if (lh != l_min) z8.transpose_out();
 				z8.store(zj, index(n_io));	// transposed if lh = l_min
@@ -669,6 +713,8 @@ public:
 
 		_err_array[thread_id] = err.max();
 	}
+	void pass2_0(const size_t thread_id) { pass2_0_impl<false>(thread_id); }
+	void pass2_scalar(const size_t thread_id) { pass2_0_impl<true>(thread_id); }
 
 	void pass2_1(const size_t thread_id)
 	{
@@ -856,22 +902,69 @@ public:
 		_error = err;
 	}
 
-	void squareDup(const bool dup) override
-	{
-		squareMul(dup ? 2 : 1);
-	}
-
-	void squareMul(const int32_t a) override
+private:
+	void squareOrdinary(const int32_t a)
 	{
 		const size_t num_threads = _num_threads;
-		// Only the squaring loop's usual multipliers use the floating-point carry.
-		const bool exact_scalar = a != 1 && a != 2;
-		_g = exact_scalar ? 1.0 : static_cast<double>(a);
+		_g = static_cast<double>(a);
 
 		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass1);
 		pass1(0); if (num_threads > 1) _parallel.wait();
 		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2_0);
 		pass2_0(0); if (num_threads > 1) _parallel.wait();
+		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2_1);
+		pass2_1(0); if (num_threads > 1) _parallel.wait();
+
+		error_update();
+	}
+
+public:
+	void squareDup(const bool dup) override
+	{
+		squareOrdinary(dup ? 2 : 1);
+	}
+
+	void squareMul(const int32_t a) override
+	{
+		if (a == 1 || a == 2)
+		{
+			squareOrdinary(a);
+			return;
+		}
+
+		_scalar_limit = cpuScalarCarryLimit(getB(), a);
+		if (_scalar_limit == 0)
+		{
+			squareOrdinary(1);
+			multiplyScalarExactly(a);
+			return;
+		}
+		const size_t num_threads = _num_threads;
+		if (_scalar_limit != 0)
+		{
+			// For |o| <= this threshold, |o*g| + |carry| + b < 2^53.
+			// Thus the direct product, sum and quotient times b are exact.
+			const uint64_t room = (uint64_t(1) << 53) - (uint64_t(1) << 30) - getB() - 1;
+			_scalar_direct_limit = std::min(_scalar_limit, double(room / uint32_t(a)));
+		}
+		_g = static_cast<double>(a);
+
+		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass1);
+		pass1(0); if (num_threads > 1) _parallel.wait();
+		// Save the transformed square so a rejected carry can be replayed
+		// with multiplier 1, followed by the exact host-side multiplication.
+		std::copy_n(reinterpret_cast<const Vcp *>(&_mem[zOffset]), zSize / sizeof(Vcp), _z_copy);
+		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2Scalar);
+		pass2_scalar(0); if (num_threads > 1) _parallel.wait();
+		const bool exact_scalar = !std::all_of(_scalar_accepted, _scalar_accepted + num_threads,
+			[](bool accepted) { return accepted; });
+		if (exact_scalar)
+		{
+			std::copy_n(_z_copy, zSize / sizeof(Vcp), reinterpret_cast<Vcp *>(&_mem[zOffset]));
+			_g = 1.0;
+			for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2_0);
+			pass2_0(0); if (num_threads > 1) _parallel.wait();
+		}
 		for (size_t i = 1; i < num_threads; ++i) _parallel.exec(i, Par::EFunction::Pass2_1);
 		pass2_1(0); if (num_threads > 1) _parallel.wait();
 

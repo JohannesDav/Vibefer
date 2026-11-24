@@ -19,6 +19,33 @@ Please give feedback to the authors if improvement is realized. It is distribute
 
 namespace transformCPU_namespace
 {
+// For the input domain 1024 <= b <= 2e9 and signed 32-bit g, admit a
+// subset and use the integer residue multiplication for all other cases.
+inline double cpuScalarCarryLimit(const uint32_t b, const int32_t g)
+{
+	if (b < 1024 || b > 2000000000 || g < 3 || g > (1 << 20) ||
+		uint64_t(b) * uint32_t(g) > (uint64_t(1) << 50)) return 0.0;
+	return double(std::min(uint64_t(1) << 50, uint64_t(b) * ((1u << 29) / uint32_t(g))));
+}
+
+// An admitted lane has rounded integer o with |o| <= min(2^50, b*floor(2^29/g)).
+// In q=round(o*(1/b)), reciprocal and multiplication contribute < 2^-22
+// absolute error before rounding (relative error < 2^-51, ratio <= 2^29).
+// The quotient may cross a tie but is within 1 of the exact ratio, so
+// |o-q*b| < b, |q*b| <= |o|+b < 2^51, and |q*g| <= 2^29+2^20.
+// Starting with |carry| < 2^30, t=carry+(o-q*b)*g has |t| < 2^51.
+// Reducing t gives |k| <= g+2^30/b+1 and |k*b| < 2^52. The new carry
+// q*g+k fits below 2^30, including the extra split-lane reduction below.
+template<class Vc, class Vd>
+inline Vc cpuScalarCarry(const Vc & o, Vc & carry, const Vd & g, const Vd & b, const Vd & inv)
+{
+	const Vc q = o.mulS(inv).round();
+	const Vc t = carry.addmulS(o.submulS(q, b), g);
+	const Vc k = t.mulS(inv).round();
+	carry = k.addmulS(q, g);
+	return t.submulS(k, b);
+}
+
 
 struct Complex
 {
@@ -84,6 +111,14 @@ public:
 	finline Vd abs() const { return Vd(abs_128d(r)); }
 	finline Vd & max(const Vd & rhs) { r = max_128d(r, rhs.r); return *this; }
 	finline double max() const { return reduce_max_128d(r); }
+	finline bool anyAbove(const Vd & limit) const
+	{
+#if defined(__x86_64__) || defined(__i386__)
+		return _mm_movemask_pd(_mm_cmpgt_pd(r, limit.r)) != 0;
+#else
+		return max() > limit[0];
+#endif
+	}
 
 	finline void interleave(Vd &) {}	// unused
 
@@ -141,6 +176,14 @@ public:
 	inline Vd abs() const { return Vd(abs_256d(r)); }
 	finline Vd & max(const Vd & rhs) { r = max_256d(r, rhs.r); return *this; }
 	finline double max() const { return reduce_max_256d(r); }
+	finline bool anyAbove(const Vd & limit) const
+	{
+#if defined(__x86_64__) || defined(__i386__)
+		return _mm256_movemask_pd(_mm256_cmp_pd(r, limit.r, _CMP_GT_OQ)) != 0;
+#else
+		return max() > limit[0];
+#endif
+	}
 
 	finline void interleave(Vd &) {}	// unused
 
@@ -204,6 +247,14 @@ public:
 	finline Vd abs() const { return Vd(abs_512d(r)); }
 	finline Vd & max(const Vd & rhs) { r = max_512d(r, rhs.r); return *this; }
 	finline double max() const { return reduce_max_512d(r); }
+	finline bool anyAbove(const Vd & limit) const
+	{
+#if defined(__x86_64__) || defined(__i386__)
+		return _mm512_cmp_pd_mask(r, limit.r, _CMP_GT_OQ) != 0;
+#else
+		return max() > limit[0];
+#endif
+	}
 
 	finline void interleave(Vd & rhs) { interleave_512d(r, rhs.r); }
 
@@ -344,6 +395,7 @@ public:
 	finline Vcx abs() const { return Vcx(re.abs(), im.abs()); }
 	finline Vcx & max(const Vcx & rhs) { re.max(rhs.re); im.max(rhs.im); return *this; }
 	finline double max() const { return std::max(re.max(), im.max()); }
+	finline bool anyAbove(const Vd<N> & limit) const { return Vd<N>(re).max(im).anyAbove(limit); }
 
 	finline void interleave(Vcx & rhs) { re.interleave(rhs.re); im.interleave(rhs.im); }
 
