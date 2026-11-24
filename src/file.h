@@ -103,6 +103,19 @@ public:
 		return ~crc;
 	}
 
+	// Fingerprint all raw bytes independently of the certificate's on-disk checksum.
+	uint32_t content_crc32()
+	{
+		if (std::fseek(_cFile, 0, SEEK_SET) != 0)
+			error("cannot seek for content checksum");
+		char buffer[16384];
+		uint32_t checksum = 0;
+		for (size_t bytes; (bytes = std::fread(buffer, 1, sizeof(buffer), _cFile)) != 0;)
+			checksum = rc_crc32(checksum, buffer, bytes);
+		if (std::ferror(_cFile)) error("cannot read content checksum");
+		return checksum;
+	}
+
 	bool read(char * const ptr, const size_t size)
 	{
 		const size_t ret = std::fread(ptr , sizeof(char), size, _cFile);

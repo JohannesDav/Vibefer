@@ -222,6 +222,43 @@ def proof_verdict_mismatch(executable, root):
         print(f"PASS proof rejects a changed composite {field}", flush=True)
 
 
+def certificate_checkpoint(executable, root):
+    work = root / "certificate-context"
+    work.mkdir()
+    proof = run(command(executable, COMPOSITE, "-p"), work)
+    assert proof.returncode == 0, proof.stdout
+    cert = work / "candidate.cert"
+
+    def generate():
+        result = run(command(executable, COMPOSITE, "-s"), work)
+        assert result.returncode == 0, result.stdout
+        return cert.read_bytes(), re.search(r"ckey = ([0-9A-F]+)", result.stdout)[1]
+
+    first, first_key = generate()
+    fixture = checkpoint_fixture(executable, work, "-c")
+    assert struct.unpack_from("=i", fixture) == (4,)
+    assert struct.unpack_from("=I", fixture, 28) == (zlib.crc32(first),)
+    second, second_key = generate()
+    if second == first:
+        time.sleep(1.1)
+        second, second_key = generate()
+    assert second != first and second_key != first_key
+    legacy = with_checksum(struct.pack("=i", 3) + fixture[4:28] + fixture[32:-4])
+    for label, checkpoint, certificate, key, resumes in (
+        ("same", fixture, first, first_key, True),
+        ("different", fixture, second, second_key, False),
+        ("legacy", legacy, first, first_key, True),
+    ):
+        trial = work / label
+        trial.mkdir()
+        (trial / "candidate.ctx").write_bytes(checkpoint)
+        (trial / "candidate.cert").write_bytes(certificate)
+        result = run(command(executable, COMPOSITE, "-c"), trial)
+        assert result.returncode == 0 and f"is checked, ckey = {key}" in result.stdout, result.stdout
+        assert ("Resuming from a checkpoint." in result.stdout) == resumes, result.stdout
+    print("PASS certificate context identity, replacement and legacy resume", flush=True)
+
+
 def failed_validation(executable, root):
     work = root / "failed-validation"
     work.mkdir()
@@ -325,6 +362,7 @@ def main():
         ordinary_checkpoint_candidate(args.genefer.resolve(), root)
         checkpoint_paths(args.genefer.resolve(), root)
         proof_verdict_mismatch(args.genefer.resolve(), root)
+        certificate_checkpoint(args.genefer.resolve(), root)
         failed_validation(args.genefer.resolve(), root)
         witness_recheck(args.genefer.resolve(), root)
         failure_cases(args.genefer.resolve(), args.cyclo.resolve(), root)
