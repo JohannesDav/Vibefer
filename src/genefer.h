@@ -676,7 +676,7 @@ private:
 			pio::print(ss.str());
 			if (ri == -1)
 			{
-				testTime = 0;
+				testTime = restoredTime;
 				return EReturn::Success;
 			}
 		}
