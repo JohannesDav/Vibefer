@@ -218,7 +218,7 @@ private:
 
 	static void clearline() { pio::display("                                                            \r"); }
 
-	bool hasLegacyProofContext(const std::string & filename, const size_t registers) const
+	bool hasLegacyContext(const std::string & filename, const size_t registers, const unsigned channels = 0) const
 	{
 		// The old GPU format stored all the transform registers in the context.
 		// The compact format has the same header and two registers.
@@ -226,8 +226,9 @@ private:
 		constexpr size_t overhead = 4 * sizeof(int) + sizeof(double) + sizeof(uint32_t);
 		std::error_code error;
 		const uintmax_t bytes = std::filesystem::file_size(pio::resolve(filename), error);
-		return !error && (bytes == overhead + 2 * registers * registerBytes
-						  || bytes == overhead + 3 * registers * registerBytes);
+		if (error) return false;
+		if (channels) return bytes == overhead + channels * registers * registerBytes;
+		return bytes == overhead + 2 * registers * registerBytes || bytes == overhead + 3 * registers * registerBytes;
 	}
 
 	int _readContext(const std::string & filename, const int where, int & i, double & elapsedTime, bool * legacyProof)
@@ -260,8 +261,12 @@ private:
 			if (savedId != _certificateId) return -3;
 		}
 		const bool legacy = version == 1 && legacyProof && _legacyProofRegisters &&
-			hasLegacyProofContext(filename, _legacyProofRegisters);
-		const size_t num_reg = legacy ? _legacyProofRegisters : (where == 0 ? 2 : 3);
+			hasLegacyContext(filename, _legacyProofRegisters);
+		size_t num_reg = legacy ? _legacyProofRegisters : (where == 0 ? 2 : 3);
+#if defined(GPU)
+		if (version == 1 && where == 0 && !legacyProof && _n <= 17 &&
+			hasLegacyContext(filename, 3, _transform->getOrdinaryPrimeCount())) num_reg = 3;
+#endif
 		if (!_transform->readContext(contextFile, num_reg)) return -2;
 		if (!contextFile.check_crc32()) return -2;
 		if (legacyProof) *legacyProof = legacy;
@@ -657,7 +662,7 @@ private:
 		int ri = 0; double restoredTime = 0;
 		bool legacyProof = false;
 		const int i0 = static_cast<int>(mpz_sizeinbase(exponent, 2) - 1);
-		bool found = readContext(0, ri, restoredTime, &legacyProof);
+		bool found = readContext(0, ri, restoredTime, B_PL != 0 ? &legacyProof : nullptr);
 		if (found && B_PL != 0)
 		{
 			if (legacyProof) restoreLegacyProofPoints(ri, B_PL);
@@ -1739,8 +1744,8 @@ public:
 		if (mode == EMode::Proof)
 		{
 			const size_t registers = 3 + (size_t(1) << depth);
-			if (hasLegacyProofContext(contextFilename(), registers) ||
-				hasLegacyProofContext(contextFilename() + ".old", registers))
+			if (hasLegacyContext(contextFilename(), registers) ||
+				hasLegacyContext(contextFilename() + ".old", registers))
 				num_regs = _legacyProofRegisters = registers;
 		}
 		(void)nthreads; (void)impl;

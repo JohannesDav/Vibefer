@@ -1245,6 +1245,12 @@ protected:
 	}
 
 public:
+#if defined(GENEFER_AUTOMATIC_OPENCL)
+	unsigned getOrdinaryPrimeCount() const override
+	{
+		return gpu_gfn::upstream_checkpoint(getB(), gpu_gfn::checkpoint_exponent(uint32_t(getSize()))).fields;
+	}
+#endif
 	bool readContext(file & cFile, const size_t nregs) override
 	{
 #if defined(GENEFER_AUTOMATIC_OPENCL)

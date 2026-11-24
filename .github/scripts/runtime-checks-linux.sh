@@ -14,6 +14,7 @@ g++ -std=c++17 -O2 tests/gfn_residue.cpp -lgmp -o "$work/gfn-residue"
 python3 tests/cpu_regressions.py --genefer bin/genefer --cyclo bin/cyclo \
     --oracle "$work/gfn-residue"
 python3 tests/proof_storage.py --executable bin/genefer --output "$work/proof-storage"
+python3 tests/legacy_quick_checkpoint.py "$executable"
 
 g++ -std=c++17 -O2 -DGPU -Isrc -IKhronos tests/two_prime_overflow.cpp \
     -lOpenCL -lgmp -o "$work/two-prime-overflow"

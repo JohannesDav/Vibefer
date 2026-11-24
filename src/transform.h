@@ -128,7 +128,7 @@ public:
 #if defined(GPU)
 	// Packed squaring can use additional channels; this describes the
 	// ordinary arithmetic and checkpoint representation.
-	unsigned getOrdinaryPrimeCount() const { return _kind == EKind::NTT2 ? 2 : 3; }
+	virtual unsigned getOrdinaryPrimeCount() const { return _kind == EKind::NTT2 ? 2 : 3; }
 	static transform * create_gpu(const uint32_t b, const uint32_t n, const bool isBoinc, const size_t device, const size_t num_regs,
 								  const cl_platform_id boinc_platform_id, const cl_device_id boinc_device_id, const bool verbose,
 								  std::string * const profile = nullptr)
