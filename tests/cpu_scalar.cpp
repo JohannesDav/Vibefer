@@ -229,6 +229,15 @@ static bool check_balance_wrap()
 
 int main()
 {
+	const char text[] = "123456789";
+	const uint32_t first = file::rc_crc32(0, text, 4);
+	if (file::rc_crc32(first, text + 4, 5) != 0xcbf43926u ||
+		file::rc_crc32(0, text, 9) != 0xcbf43926u)
+	{
+		std::fputs("FAIL CRC-32 reference vector\n", stderr);
+		return EXIT_FAILURE;
+	}
+	std::puts("PASS CRC-32 reference vector and incremental checksum");
 	if (!check_balance_wrap())
 	{
 		std::fputs("FAIL scalar-1 balance compatibility or carry cycle\n", stderr);
