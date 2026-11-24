@@ -25,3 +25,5 @@ else
     g++ -std=c++17 -O2 -Isrc tests/cpu_scalar.cpp -lgmp -o build/tests/cpu-scalar
 fi
 ./build/tests/cpu-scalar
+g++ -std=c++17 -O2 -DCYCLO -Isrc tests/cyclo_balance.cpp -lgmp -o build/tests/cyclo-balance
+./build/tests/cyclo-balance
