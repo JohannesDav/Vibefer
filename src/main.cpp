@@ -5,6 +5,7 @@ genefer is free source code, under the MIT license (see LICENSE). You can redist
 Please give feedback to the authors if improvement is realized. It is distributed in the hope that it will be useful.
 */
 
+#include <charconv>
 #include <cstdint>
 #include <sstream>
 #include <iostream>
@@ -72,6 +73,18 @@ public:
 	}
 
 private:
+	static size_t unsignedOption(const std::vector<std::string> & args, size_t & i, size_t prefix, const char * name)
+	{
+		std::string value = args[i].substr(prefix);
+		if (value.empty() && i + 1 < args.size()) value = args[++i];
+		else if (!value.empty() && value[0] == '=') value.erase(0, 1);
+		size_t number;
+		const auto parsed = std::from_chars(value.data(), value.data() + value.size(), number);
+		if (parsed.ec != std::errc() || parsed.ptr != value.data() + value.size())
+			throw std::runtime_error(std::string(name) + " requires a non-negative integer");
+		return number;
+	}
+
 	static std::string header(const std::vector<std::string> & args, const bool nl = false)
 	{
 		const char * const sysver =
@@ -304,35 +317,18 @@ public:
 			{
 				mainFilename = ((arg == "-f") && (i + 1 < size)) ? args[++i] : arg.substr(2);
 			}
-			if (arg.substr(0, 2) == "-d")
+			if (arg.substr(0, 2) == "-d" || arg.substr(0, 8) == "--device")
 			{
-				const std::string dstr = ((arg == "-d") && (i + 1 < size)) ? args[++i] : arg.substr(2);
-				device = size_t(std::atoi(dstr.c_str()));
+				device = unsignedOption(args, i, arg[1] == '-' ? 8 : 2, "--device");
 #if defined(BOINC) && defined(GPU)
 				ext_device = true;
 #endif
 			}
-			if (arg.substr(0, 8) == "--device")
+			if (arg.substr(0, 2) == "-t" || arg.substr(0, 10) == "--nthreads")
 			{
-				const std::string dstr = ((arg == "--device") && (i + 1 < size)) ? args[++i] : arg.substr(2);
-				device = size_t(std::atoi(dstr.c_str()));
-#if defined(BOINC) && defined(GPU)
-				ext_device = true;
-#endif
-			}
-			if (arg.substr(0, 2) == "-t")
-			{
-				const std::string ntstr = ((arg == "-t") && (i + 1 < size)) ? args[++i] : arg.substr(2);
-				const int nt = std::atoi(ntstr.c_str());
+				const size_t nt = unsignedOption(args, i, arg[1] == '-' ? 10 : 2, "--nthreads");
 				if (nt > 64) pio::error("number of threads > 64");
-				nthreads = size_t(std::max(1, std::min(nt, 64)));
-			}
-			if (arg.substr(0, 10) == "--nthreads")
-			{
-				const std::string ntstr = ((arg == "--nthreads") && (i + 1 < size)) ? args[++i] : arg.substr(10);
-				const int nt = std::atoi(ntstr.c_str());
-				if (nt > 64) pio::error("number of threads > 64");
-				nthreads = size_t(std::max(1, std::min(nt, 64)));
+				nthreads = std::max(size_t(1), std::min(nt, size_t(64)));
 			}
 #if !defined(__aarch64__) || defined(CYCLO)
 			if (arg.substr(0, 2) == "-x")
