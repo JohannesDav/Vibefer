@@ -1,6 +1,6 @@
 <app_info>
   <file_info>
-    <name>geneferg</name>
+    <name>vibeferg</name>
     <executable/>
   </file_info>
   <app><name>genefer16</name></app>
@@ -15,7 +15,7 @@
     <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
-      <file_name>geneferg</file_name>
+      <file_name>vibeferg</file_name>
       <main_program/>
     </file_ref>
   </app_version>
@@ -31,7 +31,7 @@
     <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
-      <file_name>geneferg</file_name>
+      <file_name>vibeferg</file_name>
       <main_program/>
     </file_ref>
   </app_version>
@@ -47,7 +47,7 @@
     <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
-      <file_name>geneferg</file_name>
+      <file_name>vibeferg</file_name>
       <main_program/>
     </file_ref>
   </app_version>
@@ -63,7 +63,7 @@
     <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
-      <file_name>geneferg</file_name>
+      <file_name>vibeferg</file_name>
       <main_program/>
     </file_ref>
   </app_version>
@@ -79,7 +79,7 @@
     <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
-      <file_name>geneferg</file_name>
+      <file_name>vibeferg</file_name>
       <main_program/>
     </file_ref>
   </app_version>
@@ -95,7 +95,7 @@
     <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
-      <file_name>geneferg</file_name>
+      <file_name>vibeferg</file_name>
       <main_program/>
     </file_ref>
   </app_version>
@@ -111,7 +111,7 @@
     <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
-      <file_name>geneferg</file_name>
+      <file_name>vibeferg</file_name>
       <main_program/>
     </file_ref>
   </app_version>
@@ -127,7 +127,7 @@
     <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
-      <file_name>geneferg</file_name>
+      <file_name>vibeferg</file_name>
       <main_program/>
     </file_ref>
   </app_version>

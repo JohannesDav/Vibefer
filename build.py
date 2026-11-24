@@ -49,7 +49,7 @@ def build_version():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    executable = "geneferg.exe" if WINDOWS else "geneferg"
+    executable = "vibeferg.exe" if WINDOWS else "vibeferg"
     parser.add_argument("--output", type=Path, default=ROOT / "build" / executable)
     parser.add_argument(
         "--cuda",

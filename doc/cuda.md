@@ -1,6 +1,6 @@
 # Building and installing
 
-This guide explains how to install `geneferg`, the GPU executable in this fork, and run it on PrimeGrid through BOINC. The easiest way is to [install a prebuilt release](#installing-a-prebuilt-release). To build it yourself, see the requirements below, or the step-by-step guides for [Ubuntu](#step-by-step-on-ubuntu) and [Windows 11](#step-by-step-on-windows-11).
+This guide explains how to install `vibeferg`, the GPU executable in this fork, and run it on PrimeGrid through BOINC. The easiest way is to [install a prebuilt release](#installing-a-prebuilt-release). To build it yourself, see the requirements below, or the step-by-step guides for [Ubuntu](#step-by-step-on-ubuntu) and [Windows 11](#step-by-step-on-windows-11).
 
 ## Installing a prebuilt release
 
@@ -9,12 +9,12 @@ Each [release](https://github.com/JohannesDav/vibefer/releases/latest) has a zip
 > [!IMPORTANT]
 > With this `app_info.xml`, BOINC only runs the GFN applications it lists. Other PrimeGrid subprojects, such as CPU work, stop on this computer until you remove it. Any unfinished PrimeGrid tasks on this computer may also be lost when you switch.
 
-**On Ubuntu**, with Ubuntu’s `boinc-client` package, run this from the directory containing the downloaded zip:
+**On Ubuntu**, with Ubuntu’s `boinc-client` package, run this from the directory containing the downloaded zip. If the zip contains `geneferg`, use that name in the install command below:
 
 ```bash
 unzip vibefer-*-linux-x64.zip
 sudo systemctl stop boinc-client
-sudo install -o boinc -g boinc -m 755 geneferg /var/lib/boinc/projects/www.primegrid.com/
+sudo install -o boinc -g boinc -m 755 vibeferg /var/lib/boinc/projects/www.primegrid.com/
 sudo install -o boinc -g boinc -m 644 app_info.xml /var/lib/boinc/projects/www.primegrid.com/
 sudo systemctl start boinc-client
 ```
@@ -23,11 +23,11 @@ sudo systemctl start boinc-client
 
 BOINC’s event log (**Tools > Event Log**) should now show `Found app_info.xml; using anonymous platform` for PrimeGrid. New GFN tasks then run with this version.
 
-To update, install the executable from a newer release the same way. To go back to the official version, follow the steps for [Ubuntu](#going-back-to-the-official-version) or [Windows](#going-back-to-the-official-version-1).
+To update, install the files from a newer release the same way. If you keep a customized `app_info.xml` when switching from `geneferg` to `vibeferg`, replace the old executable filename wherever it appears in your local `app_info.xml` while BOINC is stopped. On Windows, keep the `.exe` extension. To go back to the official version, follow the steps for [Ubuntu](#going-back-to-the-official-version) or [Windows](#going-back-to-the-official-version-1).
 
 ## Requirements
 
-To build `geneferg`, you need:
+To build `vibeferg`, you need:
 
 - Git, Python 3.8 or newer and a C++17 compiler: GCC on Linux, or MinGW-w64 GCC from MSYS2 on Windows.
 - GMP development files, including the static library `libgmp.a`.
@@ -45,12 +45,12 @@ From a copy of this repository:
 python3 build.py --cuda /path/to/cuda --boinc /path/to/boinc
 ```
 
-`--cuda` is the directory containing `include/cuda.h`. It defaults to `$CUDA_PATH`, or `/usr/local/cuda` if that isn’t set. `--boinc` is where the BOINC libraries are installed (`/usr` for Ubuntu’s package), or a BOINC source checkout where they have been built. To use `geneferg` from the command line only, use `--without-boinc` instead.
+`--cuda` is the directory containing `include/cuda.h`. It defaults to `$CUDA_PATH`, or `/usr/local/cuda` if that isn’t set. `--boinc` is where the BOINC libraries are installed (`/usr` for Ubuntu’s package), or a BOINC source checkout where they have been built. To use `vibeferg` from the command line only, use `--without-boinc` instead.
 
-This writes `build/geneferg`, or `build/geneferg.exe` on Windows. The GPU code and settings are built into it, so it’s the only file you need. This tests 28000000<sup>2<sup>19</sup></sup> + 1 and writes the proof to `candidate.proof`:
+This writes `build/vibeferg`, or `build/vibeferg.exe` on Windows. The GPU code and settings are built into it, so it’s the only file you need. This tests 28000000<sup>2<sup>19</sup></sup> + 1 and writes the proof to `candidate.proof`:
 
 ```sh
-./build/geneferg -n 19 -b 28000000 -p -f candidate
+./build/vibeferg -n 19 -b 28000000 -p -f candidate
 ```
 
 Run it with no arguments to list all options.
@@ -102,7 +102,7 @@ From the `vibefer` directory, stop BOINC, copy the two files into its PrimeGrid 
 
 ```bash
 sudo systemctl stop boinc-client
-sudo install -o boinc -g boinc -m 755 build/geneferg /var/lib/boinc/projects/www.primegrid.com/
+sudo install -o boinc -g boinc -m 755 build/vibeferg /var/lib/boinc/projects/www.primegrid.com/
 sudo install -o boinc -g boinc -m 644 doc/boinc-app_info.xml /var/lib/boinc/projects/www.primegrid.com/app_info.xml
 sudo systemctl start boinc-client
 ```
@@ -113,12 +113,14 @@ BOINC’s event log (in BOINC Manager, Tools > Event Log) should now show `Found
 
 ### Updating
 
+When upgrading from `geneferg`, replace that filename with `vibeferg` wherever it appears in your local `app_info.xml` after stopping BOINC and before restarting it.
+
 ```bash
 cd ~/vibefer
 git pull
 python3 build.py --cuda ~/cuda-headers/usr/local/cuda-12.8 --boinc /usr
 sudo systemctl stop boinc-client
-sudo install -o boinc -g boinc -m 755 build/geneferg /var/lib/boinc/projects/www.primegrid.com/
+sudo install -o boinc -g boinc -m 755 build/vibeferg /var/lib/boinc/projects/www.primegrid.com/
 sudo systemctl start boinc-client
 ```
 
@@ -173,10 +175,10 @@ In the same window:
 git clone https://github.com/JohannesDav/vibefer.git
 cd vibefer
 python build.py --boinc ../boinc --cuda ../cuda_cudart-windows-x86_64-12.8.90-archive
-./build/geneferg.exe
+./build/vibeferg.exe
 ```
 
-The last command lists the options and the OpenCL devices it finds. Check that your NVIDIA GPU is among them. The built `geneferg.exe` doesn’t need MSYS2 to run.
+The last command lists the options and the OpenCL devices it finds. Check that your NVIDIA GPU is among them. The built `vibeferg.exe` doesn’t need MSYS2 to run.
 
 ### 3. Install it in BOINC
 
@@ -187,7 +189,7 @@ In BOINC Manager’s Advanced View, choose **File > Shut down connected client**
 
 ```bash
 project=/c/ProgramData/BOINC/projects/www.primegrid.com
-cp build/geneferg.exe "$project/"
+cp build/vibeferg.exe "$project/"
 cp doc/boinc-app_info-windows.xml "$project/app_info.xml"
 ```
 
@@ -203,7 +205,7 @@ git pull
 python build.py --boinc ../boinc --cuda ../cuda_cudart-windows-x86_64-12.8.90-archive
 ```
 
-Then shut down BOINC as in step 3, copy `build/geneferg.exe` into the PrimeGrid directory again, and reopen BOINC Manager.
+Then shut down BOINC as in step 3 and copy `build/vibeferg.exe` into the PrimeGrid directory again. If your local `app_info.xml` refers to `geneferg.exe`, replace that filename with `vibeferg.exe` wherever it appears before reopening BOINC Manager.
 
 ### Going back to the official version
 
@@ -222,8 +224,8 @@ On slow storage, such as USB drives or network shares, consider `--proof-storage
 Every test runs Gallot’s Gerbicz–Li check, which detects computation errors while the test runs. Two optional checks use Gallot’s original OpenCL code to verify the finished result independently of this fork’s arithmetic:
 
 ```sh
-./build/geneferg -n 19 -b 28000000 -p -f candidate --check-certificate
-./build/geneferg -n 19 -b 28000000 -p -f candidate --check-tail
+./build/vibeferg -n 19 -b 28000000 -p -f candidate --check-certificate
+./build/vibeferg -n 19 -b 28000000 -p -f candidate --check-tail
 ```
 
 - `--check-certificate` converts the proof into a certificate and checks it. It uses Gallot’s certificate-generation and checking routines.
@@ -280,7 +282,7 @@ GENEFER_VARIANT=cuda bash .github/scripts/cpu-checks.sh
 The runtime checks test a built Linux executable using PoCL, an OpenCL implementation that runs on the CPU, so they also don't need a GPU. They include small known primes and composites, and several error cases. On Ubuntu 24.04 x86-64, they need `g++ make python3 libgmp-dev ocl-icd-opencl-dev pocl-opencl-icd`:
 
 ```sh
-bash .github/scripts/runtime-checks-linux.sh build/geneferg
+bash .github/scripts/runtime-checks-linux.sh build/vibeferg
 ```
 
 Both run automatically for every release.
@@ -288,5 +290,5 @@ Both run automatically for every release.
 The tests for the optimized GPU paths need an NVIDIA GPU and are run manually. They compare the arithmetic with GMP and the proof files with the original code, and test resuming and BOINC behavior. For example, `tests/known_primes.py` runs a proven prime and a composite through the optimized arithmetic:
 
 ```sh
-python3 tests/known_primes.py --executable build/geneferg --output known-primes
+python3 tests/known_primes.py --executable build/vibeferg --output known-primes
 ```

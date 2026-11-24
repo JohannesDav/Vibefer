@@ -31,7 +31,7 @@ APP_PLANS = {
 class ReleaseChecks(unittest.TestCase):
     def inspect(self, report, platform):
         with patch.object(release.subprocess, "check_output", return_value=report), contextlib.redirect_stdout(io.StringIO()):
-            release.inspect_binary(Path("geneferg"), platform)
+            release.inspect_binary(Path("vibeferg"), platform)
 
     def test_linux_boundary(self):
         self.inspect("file format elf64-x86-64\n NEEDED libc.so.6\n NEEDED libOpenCL.so.1\n GLIBC_2.31\n GLIBC_2.2.5", "linux")
@@ -64,7 +64,7 @@ class ReleaseChecks(unittest.TestCase):
                 os.chdir(directory)
                 Path("build").mkdir()
                 Path("doc").mkdir()
-                for name in ["geneferg", "geneferg.exe"]:
+                for name in ["vibeferg", "vibeferg.exe"]:
                     Path("build", name).write_bytes(b"test executable")
                 for name, contents in templates.items():
                     Path("doc", name).write_bytes(contents)
@@ -74,7 +74,7 @@ class ReleaseChecks(unittest.TestCase):
                     for platform in ["windows", "linux"]:
                         release.package(platform)
                     release.checksums()
-                for platform, name in [("windows", "geneferg.exe"), ("linux", "geneferg")]:
+                for platform, name in [("windows", "vibeferg.exe"), ("linux", "vibeferg")]:
                     path = Path("dist/vibefer-opencl-v1.2.3-" + platform + "-x64.zip")
                     with zipfile.ZipFile(path) as archive:
                         self.assertEqual(set(archive.namelist()), {name, "app_info.xml"})
@@ -84,6 +84,7 @@ class ReleaseChecks(unittest.TestCase):
                         self.assertEqual(xml, templates[template])
                         self.check_app_info(xml, platform, name)
                 self.assertEqual(len(Path("dist/SHA256SUMS").read_text().splitlines()), 2)
+                self.assertIn("/blob/opencl/doc/opencl.md)", Path("release-notes.md").read_text(encoding="utf-8"))
                 self.assertEqual(
                     Path("release-notes.md").read_text(encoding="utf-8").split("\n\n")[0],
                     "Experimental build of Vibefer for NVIDIA GPUs. All changes were written by AI "

@@ -48,7 +48,7 @@ jobs:
       - name: Build with BOINC support
         run: bash .github/scripts/build-windows.sh
       - name: Smoke-test the Windows executable
-        run: bash .github/scripts/check-banner.sh ./build/geneferg.exe
+        run: bash .github/scripts/check-banner.sh ./build/vibeferg.exe
       - name: Check DLL dependencies and package
         run: python3 .github/scripts/release-files.py windows
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -121,7 +121,7 @@ jobs:
       - name: Test the packaged Linux executable
         run: |
           unzip -q dist/*.zip -d "$RUNNER_TEMP/vibefer"
-          bash .github/scripts/runtime-checks-linux.sh "$RUNNER_TEMP/vibefer/geneferg"
+          bash .github/scripts/runtime-checks-linux.sh "$RUNNER_TEMP/vibefer/vibeferg"
 
   release:
     name: Attest and prepare draft release
