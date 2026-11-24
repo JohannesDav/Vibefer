@@ -11,6 +11,7 @@ import resource
 import select
 import shutil
 import signal
+import struct
 import subprocess
 import sys
 import tempfile
@@ -73,11 +74,11 @@ def known_answers(executable, oracle, root):
             print(f"PASS known answer {base} {mode}", flush=True)
 
 
-def checkpoint_fixture(executable, work):
+def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE):
     # A terminal makes the application's startup line visible before exit.
     master, terminal = pty.openpty()
     try:
-        process = subprocess.Popen(command(executable, COMPOSITE, "-e"), cwd=work,
+        process = subprocess.Popen(command(executable, base, mode), cwd=work,
                                    stdout=terminal, stderr=terminal)
         os.close(terminal)
         terminal = None
@@ -98,7 +99,7 @@ def checkpoint_fixture(executable, work):
         if terminal is not None:
             os.close(terminal)
         os.close(master)
-    return (work / "candidate.ctxp").read_bytes()
+    return (work / ("candidate.ctxp" if mode == "-e" else "candidate.ctx")).read_bytes()
 
 
 def checkpoint_recovery(executable, root):
@@ -126,6 +127,32 @@ def checkpoint_recovery(executable, root):
 def with_checksum(data):
     checksum = (~zlib.crc32(data) ^ 0xA23777AC) & 0xFFFFFFFF
     return data + checksum.to_bytes(4, sys.byteorder)
+
+
+def ordinary_checkpoint_candidate(executable, root):
+    work = root / "ordinary-checkpoint"
+    work.mkdir()
+    fixture = checkpoint_fixture(executable, work, "-q")
+    assert struct.unpack_from("=i", fixture) == (3,)
+    assert struct.unpack_from("=II", fixture, 20) == (COMPOSITE, 12)
+    legacy = with_checksum(struct.pack("=i", 1) + fixture[4:20] + fixture[28:-4])
+    for label, base, data, resume in (
+        ("same-base", COMPOSITE, fixture, True),
+        ("wrong-base", PRIME, fixture, False),
+        ("wrong-size", COMPOSITE, with_checksum(fixture[:24] + struct.pack("=I", 13) + fixture[28:-4]), False),
+        ("legacy", COMPOSITE, legacy, True),
+    ):
+        work = root / f"ordinary-{label}"
+        work.mkdir()
+        (work / "candidate.ctx").write_bytes(data)
+        if label == "wrong-base":
+            (work / "candidate.ctx.old").write_bytes(legacy)
+        result = run(command(executable, base, "-q"), work)
+        assert result.returncode == 0, result.stdout
+        assert ("Resuming from a checkpoint." in result.stdout) == resume, result.stdout
+        assert ("invalid context" in result.stdout) != resume, result.stdout
+        verdict(work, base, "a probable prime" if base == PRIME else "composite")
+        print(f"PASS ordinary checkpoint {label}", flush=True)
 
 
 def proof_verdict_mismatch(executable, root):
@@ -191,6 +218,7 @@ def main():
         root = Path(directory)
         known_answers(args.genefer.resolve(), args.oracle.resolve(), root)
         checkpoint_recovery(args.genefer.resolve(), root)
+        ordinary_checkpoint_candidate(args.genefer.resolve(), root)
         proof_verdict_mismatch(args.genefer.resolve(), root)
         failure_cases(args.genefer.resolve(), args.cyclo.resolve(), root)
 
