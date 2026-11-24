@@ -12,7 +12,7 @@
     <api_version>7.24.1</api_version>
     <avg_ncpus>1</avg_ncpus>
     <max_ncpus>1</max_ncpus>
-    <cmdline>-boinc</cmdline>
+    <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
       <file_name>geneferg.exe</file_name>
@@ -28,7 +28,7 @@
     <api_version>7.24.1</api_version>
     <avg_ncpus>1</avg_ncpus>
     <max_ncpus>1</max_ncpus>
-    <cmdline>-boinc</cmdline>
+    <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
       <file_name>geneferg.exe</file_name>
@@ -44,7 +44,7 @@
     <api_version>7.24.1</api_version>
     <avg_ncpus>1</avg_ncpus>
     <max_ncpus>1</max_ncpus>
-    <cmdline>-boinc</cmdline>
+    <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
       <file_name>geneferg.exe</file_name>
@@ -60,7 +60,7 @@
     <api_version>7.24.1</api_version>
     <avg_ncpus>1</avg_ncpus>
     <max_ncpus>1</max_ncpus>
-    <cmdline>-boinc</cmdline>
+    <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
       <file_name>geneferg.exe</file_name>
@@ -76,7 +76,7 @@
     <api_version>7.24.1</api_version>
     <avg_ncpus>1</avg_ncpus>
     <max_ncpus>1</max_ncpus>
-    <cmdline>-boinc</cmdline>
+    <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
       <file_name>geneferg.exe</file_name>
@@ -92,7 +92,7 @@
     <api_version>7.24.1</api_version>
     <avg_ncpus>1</avg_ncpus>
     <max_ncpus>1</max_ncpus>
-    <cmdline>-boinc</cmdline>
+    <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
       <file_name>geneferg.exe</file_name>
@@ -108,7 +108,7 @@
     <api_version>7.24.1</api_version>
     <avg_ncpus>1</avg_ncpus>
     <max_ncpus>1</max_ncpus>
-    <cmdline>-boinc</cmdline>
+    <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
       <file_name>geneferg.exe</file_name>
@@ -124,7 +124,7 @@
     <api_version>7.24.1</api_version>
     <avg_ncpus>1</avg_ncpus>
     <max_ncpus>1</max_ncpus>
-    <cmdline>-boinc</cmdline>
+    <cmdline>-boinc --proof-storage=ram</cmdline>
     <coproc><type>NVIDIA</type><count>1</count></coproc>
     <file_ref>
       <file_name>geneferg.exe</file_name>
