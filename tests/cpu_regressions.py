@@ -234,6 +234,13 @@ def failed_validation(executable, root):
     checkpoint = work / "candidate.ctx"
     saved = checkpoint.read_bytes()
     assert struct.unpack_from("=i", saved, 8) == (-1,)
+    # Resume a finished test with an unmistakable saved elapsed time.
+    timed = saved[:12] + struct.pack("=d", 125.0) + saved[20:-4]
+    checkpoint.write_bytes(with_checksum(timed))
+    resumed = run(args, work)
+    assert resumed.returncode == 0 and "time = 00:02:05" in resumed.stdout, resumed.stdout
+    (work / "results.txt").unlink()
+    print("PASS finished checkpoint retains elapsed test time", flush=True)
     # Replace the saved Gerbicz–Li accumulator with the final PRP residue.
     registers = saved[32:-4]
     assert len(registers) % 2 == 0
