@@ -490,6 +490,9 @@ public:
 			throw std::runtime_error("Candidate calculation or verification failed");
 #endif
 
+		if (!bBoinc && ret == genefer::EReturn::Failed)
+			throw std::runtime_error("Candidate calculation or verification failed");
+
 		if (ret == genefer::EReturn::Aborted)
 		{
 			std::ostringstream ss; ss << std::endl;
