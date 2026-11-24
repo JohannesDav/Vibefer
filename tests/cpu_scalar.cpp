@@ -1,6 +1,7 @@
 #include <array>
 #include <cstdio>
 #include <limits>
+#include <random>
 
 #include "gint.h"
 #if defined(TEST_CPU_TRANSFORMS)
@@ -149,8 +150,91 @@ static bool check_residue_comparison()
 	return one.equals(other);
 }
 
+static bool check_balance_wrap()
+{
+	// Reference for the original scalar-1 rule, capped to detect a cycle.
+	auto original = [](std::array<int32_t, 8> & digits, const int32_t base) {
+		int64_t carry = 0;
+		auto step = [&](int32_t & digit) {
+			carry += digit;
+			int32_t r = static_cast<int32_t>(carry % base);
+			if (r > base / 2) r -= base;
+			if (r <= -base / 2) r += base;
+			digit = r;
+			carry = (carry - r) / base;
+		};
+		for (auto & digit : digits) step(digit);
+		for (int wrap = 0; carry && wrap < 4; ++wrap)
+		{
+			carry = -carry;
+			for (auto & digit : digits)
+			{
+				step(digit);
+				if (!carry) break;
+			}
+		}
+		return carry == 0;
+	};
+
+	std::mt19937 random(12345);
+	for (const int32_t base : {1024, 1534, 620000000, 2000000000})
+	{
+		gint value(8, static_cast<uint32_t>(base));
+		auto check_input = [&](const digits & input) {
+			auto expected = input;
+			if (!original(expected, base)) return false;
+			std::copy(input.begin(), input.end(), value.data());
+			value.reset();
+			value.balance();
+			return std::equal(expected.begin(), expected.end(), value.data());
+		};
+		std::uniform_int_distribution<int32_t> distribution(INT32_MIN, INT32_MAX);
+		for (int i = 0; i < 20000; ++i)
+		{
+			digits input{};
+			for (auto & digit : input) digit = distribution(random);
+			if (!check_input(input)) return false;
+		}
+		for (const int32_t endpoint : {1 - base / 2, base / 2})
+		{
+			for (int carry = -4; carry <= 4; ++carry)
+			{
+				for (int offset = -3; offset <= 3; ++offset)
+				{
+					digits input;
+					input.fill(endpoint);
+					input.front() += offset;
+					if (base > 100000000) continue; // Synthetic carry must fit int32_t.
+					input.back() += carry * base;
+					auto expected = input;
+					if (original(expected, base) && !check_input(input)) return false;
+				}
+			}
+		}
+		digits edge;
+		edge.fill(base / 2);
+		++edge[0];
+		auto old_edge = edge;
+		if (original(old_edge, base)) return false;
+		std::copy(edge.begin(), edge.end(), value.data());
+		value.reset();
+		value.balance();
+		gint unbalanced(8, static_cast<uint32_t>(base));
+		std::copy(edge.begin(), edge.end(), unbalanced.data());
+		if (std::find(value.data(), value.data() + 8, -base / 2) == value.data() + 8 ||
+			!value.equals(unbalanced)) return false;
+	}
+	return true;
+}
+
 int main()
 {
+	if (!check_balance_wrap())
+	{
+		std::fputs("FAIL scalar-1 balance compatibility or carry cycle\n", stderr);
+		return EXIT_FAILURE;
+	}
+	std::puts("PASS scalar-1 balance matches 80,000 original outputs and resolves the carry cycle");
 	if (!check_residue_comparison())
 	{
 		std::fputs("FAIL canonical residue comparison\n", stderr);

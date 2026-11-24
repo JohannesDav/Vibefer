@@ -109,7 +109,7 @@ public:
 		const size_t size = _size;
 		const int32_t base = static_cast<int32_t>(_base);
 		// Scaled residues can need either sign of the half-base digit at the wrap.
-		const int32_t lower = -base / 2 + (scalar == 1);
+		int32_t lower = -base / 2 + (scalar == 1);
 		int32_t * const d = _d;
 
 		int64_t f = 0;
@@ -128,10 +128,8 @@ public:
 
 		while (f != 0)
 		{
-#if defined(CYCLO)
-			// f x^size = f x^{size/2} - f
+			// CYCLO also adds the wrap at x^{size/2}.
 			const int64_t wrap = f;
-#endif
 			f = -f;
 			for (size_t i = 0; i < size; ++i)
 			{
@@ -149,6 +147,11 @@ public:
 				if (f == 0) break;
 #endif
 			}
+#if !defined(CYCLO)
+			// A unit carry that crosses the whole array changes every digit
+			// from one endpoint to the other. The next wrap would undo it.
+			if ((wrap == 1 || wrap == -1) && f == -wrap) lower = -base / 2;
+#endif
 		}
 	}
 
