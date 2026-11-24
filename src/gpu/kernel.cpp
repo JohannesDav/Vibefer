@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "parameters.h"
 #include "checkpoint.h"
+#include "bounds.h"
 #include <gpu/embedded_kernels.h>
 #include <sstream>
 
@@ -241,6 +242,8 @@ generated_kernel generate_kernel(uint32_t base, unsigned exponent, const kernel_
             "Unsupported packed length");
     require(uint64_t(plan.length) * plan.pack == (uint64_t(1) << exponent), "Packed exponent mismatch");
     require(packed_handoff_fits(base, exponent, plan.pack), "Packed digits exceed ordinary two-prime bound");
+    require(small_prime_bounds::packed_multiply_handoff(base, exponent),
+            "Ordinary multiply carry exceeds packed digit bound");
     require(plan.root_bits == 32 || plan.root_bits == 64, "Unsupported root word width");
     require(plan.outer && plan.length % plan.outer == 0, "Invalid transform split");
     const unsigned inner = plan.length / plan.outer;
