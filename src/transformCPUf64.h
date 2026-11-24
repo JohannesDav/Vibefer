@@ -727,7 +727,7 @@ public:
 	transformCPUf64(const uint32_t b, const uint32_t n, const size_t num_threads, const size_t num_regs, const bool checkError)
 		: transform(N, n, b, IBASE ? ((VSIZE == 2) ? EKind::IBDTvec2 : ((VSIZE == 4) ? EKind::IBDTvec4 : EKind::IBDTvec8))
 								   : ((VSIZE == 2) ? EKind::DTvec2 : ((VSIZE == 4) ? EKind::DTvec4 : EKind::DTvec8))),
-		_num_threads(num_threads), _parallel(this, num_threads - 1),
+		_num_threads(std::min(num_threads, n_io_s)), _parallel(this, _num_threads - 1),
 		_b(b), _b_inv(1.0 / b), _sb(sqrt(static_cast<double>(b))), _sb_inv(1 / _sb),
 		_mem_size(wSize + wsSize + zSize + fcSize + zSize + (num_regs - 1) * zSize + 2 * 1024 * 1024),
 		_cache_size(wSize + wsSize + zSize + fcSize), _checkError(checkError), _error(0),
@@ -1034,6 +1034,7 @@ public:
 		for (size_t k = 0; k < index(N) / VSIZE; ++k) z_dst[k] = z_src[k];
 	}
 
+	size_t getNumThreads() const override { return _num_threads; }
 	double getError() const override { return _error; }
 };
 

@@ -122,7 +122,8 @@ static bool check_transforms()
 				!transform_case(implementation, 12, 1040, 1 << 20, true, check_error) ||
 				!transform_case(implementation, 12, 1040, std::numeric_limits<int32_t>::max(), true, check_error) ||
 				!transform_case(implementation, 19, 38786700, 23, false, check_error) ||
-				!transform_case(implementation, 12, 1040, 1 << 20, true, check_error, 2))
+				!transform_case(implementation, 12, 1040, 1 << 20, true, check_error, 2) ||
+				!transform_case(implementation, 12, 1040, 23, true, check_error, 9))
 				return false;
 	}
 	return true;

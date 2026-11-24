@@ -138,7 +138,7 @@ private:
 		if (verbose)
 		{
 			const size_t cache_size = _transform->getCacheSize(), mem_size = _transform->getMemSize();
-			std::ostringstream ss; ss << "Using " << ttype << " implementation, " << nthreads << " thread(s)";
+			std::ostringstream ss; ss << "Using " << ttype << " implementation, " << _transform->getNumThreads() << " thread(s)";
 			if (full) ss << ", data size: " << std::setprecision(3) << cache_size / (1024 * 1024.0) << "/" << mem_size / (1024 * 1024.0) << " MB";
 			ss << "." << std::endl;
 			pio::print(ss.str());
