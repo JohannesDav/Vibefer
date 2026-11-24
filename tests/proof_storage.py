@@ -71,7 +71,7 @@ def main():
                         proc.terminate()
                         sent_quit = True
                 assert sent_quit, log.read_text()
-                assert proc.wait(timeout=10) == int(fail_save), log.read_text()
+                assert proc.wait(timeout=10) == (1 if fail_save else 2), log.read_text()
             finally:
                 if proc.poll() is None:
                     proc.kill()

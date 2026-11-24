@@ -108,7 +108,7 @@ def checkpoint_fixture(executable, work, mode="-e", base=COMPOSITE, failure=Fals
                 assert select.select([master], [], [], remaining)[0], output
                 output.extend(os.read(master, 4096))
             process.send_signal(signal.SIGINT)
-            assert process.wait(timeout=10) == int(failure)
+            assert process.wait(timeout=10) == (1 if failure else 2)
             if failure:
                 while b"cannot open file" not in output:
                     assert select.select([master], [], [], 1)[0], output
