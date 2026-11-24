@@ -240,13 +240,20 @@ private:
 #if defined(GPU)
 		version = -version;
 #endif
-		if (version != 1) return -2;
+		if (version != 1 && version != 3) return -2;
 		int rwhere = 0;
 		if (!contextFile.read(reinterpret_cast<char *>(&rwhere), sizeof(rwhere))) return -2;
 		if (rwhere != where) return -2;
 		if (!contextFile.read(reinterpret_cast<char *>(&i), sizeof(i))) return -2;
 		if (!contextFile.read(reinterpret_cast<char *>(&elapsedTime), sizeof(elapsedTime))) return -2;
-		const bool legacy = legacyProof && _legacyProofRegisters &&
+		if (version == 3)
+		{
+			uint32_t savedB, savedN;
+			if (!contextFile.read(reinterpret_cast<char *>(&savedB), sizeof(savedB)) ||
+				!contextFile.read(reinterpret_cast<char *>(&savedN), sizeof(savedN))) return -2;
+			if (savedB != _gi->getBase() || savedN != _n) return -3;
+		}
+		const bool legacy = version == 1 && legacyProof && _legacyProofRegisters &&
 			hasLegacyProofContext(filename, _legacyProofRegisters);
 		const size_t num_reg = legacy ? _legacyProofRegisters : (where == 0 ? 2 : 3);
 		if (!_transform->readContext(contextFile, num_reg)) return -2;
@@ -264,6 +271,8 @@ private:
 			std::ostringstream ss; ss << ctxFile << ": invalid context";
 			pio::error(ss.str());
 		}
+		// A backup without a candidate header cannot override a known mismatch.
+		if (error == -3) return false;
 		ctxFile += ".old";
 		if (error < 0)
 		{
@@ -283,7 +292,7 @@ private:
 
 		{
 			file contextFile(newCtxFile, "wb", false);
-			int version = 1;
+			int version = 3;
 #if defined(GPU)
 			version = -version;
 #endif
@@ -291,6 +300,9 @@ private:
 			if (!contextFile.write(reinterpret_cast<const char *>(&where), sizeof(where))) return;
 			if (!contextFile.write(reinterpret_cast<const char *>(&i), sizeof(i))) return;
 			if (!contextFile.write(reinterpret_cast<const char *>(&elapsedTime), sizeof(elapsedTime))) return;
+			const uint32_t b = _gi->getBase();
+			if (!contextFile.write(reinterpret_cast<const char *>(&b), sizeof(b))) return;
+			if (!contextFile.write(reinterpret_cast<const char *>(&_n), sizeof(_n))) return;
 			const size_t num_reg = (where == 0) ? 2 : 3;
 			_transform->saveContext(contextFile, num_reg);
 			contextFile.write_crc32();
