@@ -59,12 +59,14 @@ int main() {
         plan.length = (1u << n) / plan.pack;
         plan.outer = 1024;
         plan.chunk = 1;
-        const uint32_t boundary = n == 22 ? 1184u : 1674u;
-        try {
-            generate_kernel(boundary, n, plan);
-            throw std::runtime_error("Unsafe multiply carry admitted");
-        } catch (const std::invalid_argument &error) {
-            if (std::string(error.what()) != "Ordinary multiply carry exceeds packed digit bound") throw;
+        const uint32_t boundary = n == 22 ? 1674u : 2366u;
+        for (uint32_t base : {n == 22 ? 1186u : 1676u, boundary}) {
+            try {
+                generate_kernel(base, n, plan);
+                throw std::runtime_error("Unsafe doubled carry admitted");
+            } catch (const std::invalid_argument &error) {
+                if (std::string(error.what()) != "Ordinary carry exceeds packed digit bound") throw;
+            }
         }
         if (generate_kernel(boundary + 2, n, plan).source.empty())
             throw std::runtime_error("Safe multiply carry rejected");
@@ -84,7 +86,7 @@ int main() {
         plan.length = (1u << 23) / pack;
         plan.outer = pack == 4 ? 1024 : 256;
         plan.chunk = 1;
-        for (uint32_t base : {1676u, 100000u, 660000u, 3000000u}) {
+        for (uint32_t base : {2368u, 100000u, 660000u, 3000000u}) {
             const auto kernel = generate_kernel(base, 23, plan);
             if (kernel.source.empty() || kernel.fields < 2)
                 throw std::runtime_error("GFN-23 generation failed");
