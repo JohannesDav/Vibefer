@@ -4880,6 +4880,15 @@
       "architecture": "ada",
       "memory_gib": 32,
       "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
         "17": {
           "implementation": "packed",
           "length": 65536,
@@ -4889,6 +4898,15 @@
           "inner_blocks": 1,
           "digit_ratio": 2,
           "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         },
         "19": {
           "implementation": "packed",
@@ -4900,9 +4918,29 @@
           "digit_ratio": 3,
           "matrix_mad": true
         },
-        "21": {
+        "20": {
           "implementation": "packed",
           "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
           "outer": 64,
           "chunk": 8,
           "root_bits": 32,
@@ -4910,53 +4948,15 @@
           "digit_ratio": 3,
           "matrix_mad": true
         },
-        "16": {
-          "chunk": 4,
-          "digit_ratio": 3,
+        "23": {
           "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
-          "length": 32768,
-          "matrix_mad": false,
-          "outer": 64,
-          "root_bits": 64,
-          "shared_memory_preference": 50
-        },
-        "18": {
-          "chunk": 4,
-          "digit_ratio": 2,
-          "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
-          "length": 65536,
-          "matrix_mad": true,
-          "outer": 64,
-          "root_bits": 64,
-          "shared_memory_preference": 50
-        },
-        "20": {
-          "chunk": 16,
-          "digit_ratio": 3,
-          "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
-          "length": 131072,
-          "matrix_mad": false,
-          "outer": 64,
-          "root_bits": 64,
-          "shared_memory_preference": 50
-        },
-        "22": {
-          "chunk": 8,
-          "digit_ratio": 3,
-          "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
-          "length": 262144,
-          "matrix_mad": true,
-          "outer": 64,
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
           "root_bits": 32,
-          "shared_memory_preference": 50
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
         }
       }
     },
@@ -6189,9 +6189,38 @@
       "architecture": "ada",
       "memory_gib": 24,
       "projects": {
-        "21": {
+        "16": {
           "implementation": "packed",
-          "length": 131072,
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
           "outer": 64,
           "chunk": 4,
           "root_bits": 64,
@@ -6199,77 +6228,44 @@
           "digit_ratio": 3,
           "matrix_mad": true
         },
-        "16": {
-          "chunk": 4,
-          "digit_ratio": 3,
-          "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
-          "length": 32768,
-          "matrix_mad": false,
-          "outer": 64,
-          "root_bits": 64,
-          "shared_memory_preference": 50
-        },
-        "17": {
-          "chunk": 4,
-          "digit_ratio": 2,
-          "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
-          "length": 65536,
-          "matrix_mad": false,
-          "outer": 64,
-          "root_bits": 32,
-          "shared_memory_preference": 50
-        },
-        "18": {
-          "chunk": 4,
-          "digit_ratio": 2,
-          "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
-          "length": 65536,
-          "matrix_mad": true,
-          "outer": 64,
-          "root_bits": 64,
-          "shared_memory_preference": 50
-        },
-        "19": {
-          "chunk": 4,
-          "digit_ratio": 3,
-          "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
-          "length": 65536,
-          "matrix_mad": false,
-          "outer": 64,
-          "root_bits": 32,
-          "shared_memory_preference": 50
-        },
         "20": {
-          "chunk": 16,
-          "digit_ratio": 3,
           "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
           "length": 131072,
-          "matrix_mad": false,
           "outer": 64,
+          "chunk": 4,
           "root_bits": 64,
-          "shared_memory_preference": 50
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
         },
         "22": {
-          "chunk": 8,
-          "digit_ratio": 3,
           "implementation": "packed",
-          "inline_converter": false,
-          "inner_blocks": 1,
           "length": 262144,
-          "matrix_mad": true,
           "outer": 64,
+          "chunk": 8,
           "root_bits": 32,
-          "shared_memory_preference": 50
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
         }
       }
     },
@@ -8982,6 +8978,1281 @@
           "root_bits": 32,
           "inner_blocks": 1,
           "digit_ratio": 2
+        }
+      }
+    },
+    {
+      "name": "NVIDIA CMP 170HX",
+      "architecture": "ampere_sm80",
+      "memory_gib": 40,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA CMP 170HX",
+      "architecture": "ampere_sm80",
+      "memory_gib": 64,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 16384,
+          "outer": 16,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA GB10",
+      "architecture": "blackwell",
+      "memory_gib": 128,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 16384,
+          "outer": 16,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA GeForce GTX 1060 6GB",
+      "architecture": "pascal",
+      "memory_gib": 6,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 16384,
+          "outer": 16,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 524288,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA H200 NVL",
+      "architecture": "hopper",
+      "memory_gib": 141,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "Quadro P2000",
+      "architecture": "pascal",
+      "memory_gib": 5,
+      "projects": {
+        "16": {
+          "implementation": "three-prime",
+          "root_bits": 32
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 524288,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 1,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA GeForce RTX 3080",
+      "architecture": "ampere",
+      "memory_gib": 12,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+      "architecture": "ada",
+      "memory_gib": 8,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA GeForce RTX 4080",
+      "architecture": "ada",
+      "memory_gib": 32,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 16384,
+          "outer": 16,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA RTX 6000D",
+      "architecture": "blackwell",
+      "memory_gib": 84,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA RTX A4500",
+      "architecture": "ampere",
+      "memory_gib": 20,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 256,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "NVIDIA RTX PRO 5000 72GB Blackwell",
+      "architecture": "blackwell",
+      "memory_gib": 72,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "Tesla P100-PCIE-12GB",
+      "architecture": "pascal",
+      "memory_gib": 12,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 32,
+          "inner_blocks": 2,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 524288,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 524288,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "Tesla P4",
+      "architecture": "pascal",
+      "memory_gib": 8,
+      "projects": {
+        "16": {
+          "implementation": "three-prime",
+          "root_bits": 32
+        },
+        "17": {
+          "implementation": "three-prime",
+          "root_bits": 32
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 256,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 524288,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 524288,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        }
+      }
+    },
+    {
+      "name": "Tesla V100S-PCIE-32GB",
+      "architecture": "volta",
+      "memory_gib": 32,
+      "projects": {
+        "16": {
+          "implementation": "packed",
+          "length": 32768,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "17": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "18": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "19": {
+          "implementation": "packed",
+          "length": 65536,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "20": {
+          "implementation": "packed",
+          "length": 131072,
+          "outer": 64,
+          "chunk": 8,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "21": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
+        },
+        "22": {
+          "implementation": "packed",
+          "length": 262144,
+          "outer": 64,
+          "chunk": 4,
+          "root_bits": 64,
+          "inner_blocks": 1,
+          "digit_ratio": 3,
+          "matrix_mad": true
+        },
+        "23": {
+          "implementation": "packed",
+          "length": 1048576,
+          "outer": 1024,
+          "chunk": 2,
+          "root_bits": 32,
+          "inner_blocks": 1,
+          "digit_ratio": 2,
+          "matrix_mad": true
         }
       }
     }
