@@ -16,14 +16,16 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | NVIDIA GeForce RTX 5060 | 8 GB | Blackwell |
 | NVIDIA GeForce RTX 4090 | 48 GB | Ada |
 | NVIDIA GeForce RTX 4090 | 24 GB | Ada |
-| NVIDIA GeForce RTX 4080 SUPER* | 32 GB | Ada |
+| NVIDIA GeForce RTX 4080 SUPER | 32 GB | Ada |
 | NVIDIA GeForce RTX 4080 SUPER | 16 GB | Ada |
+| NVIDIA GeForce RTX 4080 | 32 GB | Ada |
 | NVIDIA GeForce RTX 4080 | 16 GB | Ada |
 | NVIDIA GeForce RTX 4080 Laptop GPU | 12 GB | Ada |
 | NVIDIA GeForce RTX 4070 Ti SUPER | 16 GB | Ada |
 | NVIDIA GeForce RTX 4070 Ti | 12 GB | Ada |
 | NVIDIA GeForce RTX 4070 SUPER | 12 GB | Ada |
 | NVIDIA GeForce RTX 4070 | 12 GB | Ada |
+| NVIDIA GeForce RTX 4070 Laptop GPU | 8 GB | Ada |
 | NVIDIA GeForce RTX 4060 Ti | 16 GB | Ada |
 | NVIDIA GeForce RTX 4060 Ti | 8 GB | Ada |
 | NVIDIA GeForce RTX 4060 | 8 GB | Ada |
@@ -32,6 +34,7 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | NVIDIA GeForce RTX 3090 | 24 GB | Ampere |
 | NVIDIA GeForce RTX 3080 Ti | 12 GB | Ampere |
 | NVIDIA GeForce RTX 3080 | 20 GB | Ampere |
+| NVIDIA GeForce RTX 3080 | 12 GB | Ampere |
 | NVIDIA GeForce RTX 3080 | 10 GB | Ampere |
 | NVIDIA GeForce RTX 3070 Ti | 8 GB | Ampere |
 | NVIDIA GeForce RTX 3070 Ti Laptop GPU* | 8 GB | Ampere |
@@ -56,6 +59,7 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | NVIDIA GeForce GTX 1080 | 8 GB | Pascal |
 | NVIDIA GeForce GTX 1070 Ti | 8 GB | Pascal |
 | NVIDIA GeForce GTX 1070 | 8 GB | Pascal |
+| NVIDIA GeForce GTX 1060 6GB | 6 GB | Pascal |
 | NVIDIA TITAN RTX | 24 GB | Turing |
 | NVIDIA TITAN V | 12 GB | Volta |
 | NVIDIA TITAN Xp* | 12 GB | Pascal |
@@ -63,6 +67,8 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition | 96 GB | Blackwell |
 | NVIDIA RTX PRO 6000 Blackwell Server Edition | 96 GB | Blackwell |
 | NVIDIA RTX PRO 6000 Blackwell Workstation Edition | 96 GB | Blackwell |
+| NVIDIA RTX 6000D | 84 GB | Blackwell |
+| NVIDIA RTX PRO 5000 72GB Blackwell | 72 GB | Blackwell |
 | NVIDIA RTX PRO 5000 Blackwell | 48 GB | Blackwell |
 | NVIDIA RTX PRO 4500 Blackwell | 32 GB | Blackwell |
 | NVIDIA RTX PRO 4000 Blackwell | 24 GB | Blackwell |
@@ -70,11 +76,12 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | NVIDIA RTX 6000 Ada Generation | 48 GB | Ada |
 | NVIDIA RTX 5880 Ada Generation | 48 GB | Ada |
 | NVIDIA RTX 5000 Ada Generation | 32 GB | Ada |
-| NVIDIA RTX 4500 Ada Generation* | 24 GB | Ada |
+| NVIDIA RTX 4500 Ada Generation | 24 GB | Ada |
 | NVIDIA RTX 4000 Ada Generation | 20 GB | Ada |
 | NVIDIA RTX 2000 Ada Generation | 16 GB | Ada |
 | NVIDIA RTX A6000 | 48 GB | Ampere |
 | NVIDIA RTX A5000 | 24 GB | Ampere |
+| NVIDIA RTX A4500 | 20 GB | Ampere |
 | NVIDIA RTX A4000 | 16 GB | Ampere |
 | NVIDIA RTX A3000 12GB Laptop GPU | 12 GB | Ampere |
 | NVIDIA RTX A2000 12GB | 12 GB | Ampere |
@@ -84,13 +91,18 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | Quadro RTX 5000 | 16 GB | Turing |
 | NVIDIA T600* | 4 GB | Turing |
 | Quadro P4000 | 8 GB | Pascal |
+| Quadro P2000 | 5 GB | Pascal |
+| NVIDIA GB10 | 128 GB | Blackwell |
 | NVIDIA H200 | 141 GB | Hopper |
+| NVIDIA H200 NVL | 141 GB | Hopper |
 | NVIDIA H100 NVL | 96 GB | Hopper |
 | NVIDIA H100 80GB HBM3 | 80 GB | Hopper |
 | NVIDIA H100 PCIe | 80 GB | Hopper |
 | NVIDIA L40 | 48 GB | Ada |
 | NVIDIA L40S | 48 GB | Ada |
 | NVIDIA L4 | 24 GB | Ada |
+| NVIDIA CMP 170HX | 64 GB | Ampere (A100 class) |
+| NVIDIA CMP 170HX | 40 GB | Ampere (A100 class) |
 | NVIDIA A100 80GB PCIe | 80 GB | Ampere (A100 class) |
 | NVIDIA A100-SXM4-80GB | 80 GB | Ampere (A100 class) |
 | NVIDIA A100-PCIE-40GB | 40 GB | Ampere (A100 class) |
@@ -101,10 +113,13 @@ For an unlisted memory size of a listed GPU model, the program first tries that 
 | NVIDIA A2* | 16 GB | Ampere |
 | Tesla T4 | 16 GB | Turing |
 | Tesla PG500-216* | 32 GB | Volta |
+| Tesla V100S-PCIE-32GB | 32 GB | Volta |
 | Tesla V100-PCIE-32GB | 32 GB | Volta |
 | Tesla V100-SXM2-32GB | 32 GB | Volta |
 | Tesla V100-SXM2-16GB | 16 GB | Volta |
 | Tesla P100-PCIE-16GB | 16 GB | Pascal |
+| Tesla P100-PCIE-12GB | 12 GB | Pascal |
 | Tesla P40 | 24 GB | Pascal |
+| Tesla P4 | 8 GB | Pascal |
 
 Settings can become outdated as the program changes. Those marked * are the most likely to benefit from a new calibration. Some marked GPUs also lack a GFN-23 calibration and use fallback settings for that size.
